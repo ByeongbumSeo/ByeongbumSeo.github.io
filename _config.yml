@@ -18,27 +18,28 @@ timezone: Asia/Seoul
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: 프로의 개발일지 # the main title
+title: 범범의 개발 일기장 # the main title
 
-tagline: Developer PRO # it will display as the sub-title
+tagline: 부지런함을 연습하는 일기장 # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  개발하면서 알게 된 새로운 내용을 기록하고, 많은 정보를 공유하고자 운영하는 블로그입니다.
+  저의 이 일기가 조금이나마 도움이 되었으면 좋겠습니다.
 
-# fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
-url: "https://jiseoup.github.io"
+# Fill in the protocol & hostname for your site.
+# e.g. 'https://username.github.io', note that it does not end with a '/'.
+url: "https://ByeongbumSeo.github.io"
 
 github:
-  username: Jiseoup # change to your github username
+  username: ByeongbumSeo # change to your github username
 
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: PRO
-  email: jseoup@hanyang.ac.kr # change to your email address
+  name: 서병범
+  email: bum4321@naver.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://github.com/Jiseoup # change to your github homepage
+    - https://github.com/ByeongbumSeo # change to your github homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
     # - https://www.linkedin.com/in/username
@@ -76,7 +77,7 @@ theme_mode: # [light|dark]
 # img_cdn: 'https://chirpy-img.netlify.app'
 
 # the avatar on sidebar, support local or CORS resources
-avatar: "/assets/img/profile/profile.jpg"
+avatar: "/assets/img/profile/profile.png"
 
 # boolean type, the global switch for ToC in posts.
 toc: true
