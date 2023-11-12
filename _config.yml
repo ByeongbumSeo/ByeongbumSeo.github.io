@@ -18,12 +18,12 @@ timezone: Asia/Seoul
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: 범범의 개발 일기장 # the main title
+title: 범범의 연습장 # the main title
 
-tagline: 부지런함을 연습하는 일기장 # it will display as the sub-title
+tagline: 부지런함을 연습하는 연습장 # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
-  저의 이 일기가 조금이나마 도움이 되었으면 좋겠습니다.
+  읽으시는 분들께 조금이나마 도움이 되었으면 좋겠습니다.
 
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
