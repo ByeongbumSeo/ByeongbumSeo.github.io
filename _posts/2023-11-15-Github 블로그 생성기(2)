@@ -9,3 +9,30 @@ tags:
 
 # Github 블로그 생성기(2)
 
+지난 시간에 마음에 드는 Jekyll Theme를 로컬로 Clone 받은 뒤, `'Username.github.io'` 의 이름으로 만든 Repository에 Push 하는 것까지 마쳤다.
+
+물론 이 과정에는 Clone 받은 폴더의 Git 연결을 끊고, 내 Repository로 새로 Remote해주는 것이 필요하다.[1^]
+
+이 부분을 간략히 설명하자면,
+```shell
+git remote remove origin
+--> Git 연결 해제
+
+git remote -v
+--> 현재 연결된 원격 저장소 확인 (연결 해제 확인)
+
+git remote add origin <repository주소>
+--> 내 repository로 연결
+```
+
+[^1]: 혹은 Clone 받는 것 대신, 해당 Theme를 Download해서 압축 파일을 해제하고 폴더 안의 파일들을 로컬 Repository 폴더에 옮긴 뒤, 내 Repository로 Push해도 된다.
+
+
+
+
+
+
+
+
+
+---
