@@ -1,5 +1,5 @@
 ---
-title: .parseInt()vs.valueOf()(Wrapper클래스,Boxing&UnBoxing)
+title: parseInt() vs valueOf()
 date: 2023-12-03 22:00:22 +09:00
 categories:
   - 언어
