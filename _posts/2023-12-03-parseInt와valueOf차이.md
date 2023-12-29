@@ -1,5 +1,5 @@
 ---
-title: parseInt() vs valueOf()
+title: parseInt() vs valueOf(), Wrapper클래스
 date: 2023-12-03 22:00:22 +09:00
 categories:
   - 언어
@@ -9,6 +9,7 @@ tags:
   - Wrapper클래스
   - 데이터 타입
   - Boxing & UnBoxing
+  - valueOf
 ---
 
 ## 이 글에서 다루는 내용
