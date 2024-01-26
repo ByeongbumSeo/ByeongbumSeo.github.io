@@ -7,6 +7,7 @@ categories:
 tags:
   - Java
   - JDBC
+  - SQL Mapper
   - JdbcTemplate
 ---
 
@@ -19,28 +20,78 @@ jdbcTemplate은 허들이 높은 스킬이 아니므로, 간단하게 공부해�
 
 ## 다루는 내용
 이 글에서는 jdbcTemplate 를 설명하며 연관 지식으로
-- JDBC API
-- SQL Mapper, (MyBatis)
+- JDBC
+- SQL Mapper
 - Spring JDBC
-- ORM, (JPA)
 
 에 대해서도 다룬다.  
 
-## jdbcTemplate 이란?
+우선 SQL Mapper가 무엇인지, 그리고 Spring JDBC가 무엇인지에 대해 설명하고 jdbcTemplate을 설명하는 것이 맞는 순서라고 생각된다.
+**SQL Mapper**와 **Spring JDBC**에 대해 간략하게 설명하도록 하겠다.
 
-jdbcTemplate을 알기 전에 우선 JDBC에 대해서 알아야하는데, 이를 사용하는 이유에 대해서 간략하게 설명하자면 아래와 같다.  
-> JDBC API를 통해 추상화된 인터페이스를 제공하고, 각 벤더사에서 각자의 DBMS에 따라 구현해놓은 드라이버를 설치하여 사용하는 방식으로 DB에 접근한다. 이를 통해 어떤 DB를 사용하든 개발자가 JDBC를 사용하는 방법은 변하지 않는다.
+## SQL Mapper
+---
+기존의
+- 어플리케이션 로직 > JDBC  
+구성에서
+- 어플리케이션 로직 > SQL Mapper > JDBC  
+으로 변경되며 개발자가 SQL만 직접 작성하면 **나머지 일들을 SQL Mapper가 대신 처리**해주게 되었다.
+
+대표적으로 SQL 응답 결과를 객체로 변환해주고, JDBC의 반복 코드를 제거해주는 등의 일을 한다.
+
+이를 통해 JDBC를 보다 편리하게 사용할 수 있게 되었다.
+
+
+## Spring JDBC
+---
+- Spring JDBC는 스프링 프레임워크에서 제공하는 JDBC 기반의 데이터 액세스 기술
+
+Spring JDBC는 JDBC를 보다 쉽고 효율적으로 사용할 수 있도록 추상화된 기능을 제공하는데, 이를 통해 개발자는 반복적이고 번거로운 JDBC 작업을 간소화하고 생산성을 향상시킬 수 있다.
+
+Spring JDBC는 아래와 같은 특징을 가진다.
+
+**1) DataSource 추상화**
+
+Spring JDBC는 데이터베이스 연결 풀을 관리하기 위한 DataSource 인터페이스를 제공한다.
+DataSource를 사용하여 데이터베이스 연결 및 트랜잭션 관리를 편리하게 처리할 수 있다.
+
+**2) 예외 처리 및 자원 관리**
+
+Spring JDBC는 JDBC 작업에서 발생하는 예외를 일관되게 처리하고, 연결 및 리소스 관리를 자동으로 처리하여 개발자가 명시적으로 관리해야 하는 부분을 간소화한다.
+
+**3) SQL 문 실행 및 매핑**
+
+Spring JDBC는 간단하고 직관적인 방식으로 SQL 문을 실행하고 결과를 자바 객체로 매핑하는 기능을 제공한다.
+ResultSet을 자동으로 객체로 변환하고, PreparedStatement 및 CallableStatement를 사용하여 SQL 파라미터를 설정할 수 있다.
+
+**4) 트랜잭션 관리**
+
+Spring JDBC는 스프링의 트랜잭션 관리 기능과 통합된다. 기존에는 Service에서 커밋과 롤백을 설정했었다면 Spring에서는 자동으로 관리해준다. 
+트랜잭션 경계 설정, 롤백, 커밋 등의 작업을 편리하게 처리할 수 있다.
+
+
+**5) 다양한 Callback 및 템플릿**
+
+Spring JDBC는 JdbcTemplate, NamedParameterJdbcTemplate, SimpleJdbcTemplate 등의 다양한 템플릿과 콜백 기능을 제공한다.
+이를 통해 반복적인 JDBC 코드 작성을 간소화하고, 일관성 있는 방식으로 데이터베이스 액세스 작업을 수행할 수 있다.
+
+
+## jdbcTemplate 이란?
+---
+jdbcTemplate을 알기 전에 우선 JDBC가 무엇이고, 이를 왜 사용하는 지에 대해서 간략하게 설명하자면 아래와 같다.  
+> - JDBC : Java에서 DB에 접속할 수 있도록 하는 Java API
+> - JDBC API를 통해 추상화된 인터페이스를 제공하고, 각 벤더사에서 각자의 DBMS에 따라 구현해놓은 드라이버를 설치하여 사용하는 방식으로 DB에 접근한다. 이를 통해 어떤 DB를 사용하든 개발자가 JDBC를 사용하는 방법은 변하지 않는다.
 
 JDBC를 사용하는 방법은 아래와 같다.
 1. DriverManager를 이용해서 Connection 인스턴스를 얻는다.
 2. Connection을 통해서 Statement(혹은 PreparedStatement)를 얻는다.
 3. Statement(혹은 PreparedStatement)를 이용해 ResultSet을 얻는다.
 
-또한 JDBC를 사용하기 위해서는 커넥션 연결, SQL 요청 및 응답 이외에도 객체 변환, 예외 처리 등에 대해서 일일이 처리해줘야 한다.
-
-이를 위해서 SQL Mapper가 등장하게 되는데, jdbcTemplate은 MyBatis와 더불어 대표적인 SQL Mapper 기술이다.
+순수 JDBC를 이용하면 커넥션 연결, SQL 요청 및 응답 이외에도 리소스 반납, 객체 변환, 예외 처리 등 일일이 처리해줘야 하는 부분이 많다.  
+이러한 코드 반복을 줄이기 위해서 **SQL Mapper**가 등장하게 되는데, 이 포스팅에서 설명하고 있는 jdbcTemplate은 MyBatis와 더불어 대표적인 SQL Mapper 기술이다.
 
 - jdbcTemplate 예시 코드
+
 ```java
 public class CrewDAO{
   private JdbcTemplate jdbcTemplate;
@@ -84,13 +135,7 @@ JDBC API만을 사용할 때보다, Connection에 대한 Configuration을 JdbcTe
 
 
 
-### SQL Mapper
-기존의
-- 어플리케이션 로직 > JDBC  
-구성에서
-- 어플리케이션 로직 > SQL Mapper > JDBC  
-으로 변경되며 개발자가 SQL만 직접 작성하면 **나머지 일들을 SQL Mapper가 대신 처리**해주게 되었다.
 
-대표적으로 SQL 응답 결과를 객체로 변환해주고, JDBC의 반복 코드를 제거해주는 등의 일을 한다.
-
-이를 통해 JDBC를 보다 편리하게 사용할 수 있게 되었다.
+## JdbcTemplate 사용법
+---
+Spring Framework에서 제공하는 Spring JDBC
