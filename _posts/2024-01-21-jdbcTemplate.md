@@ -41,6 +41,7 @@ jdbcTemplate은 허들이 높은 스킬이 아니므로, 간단하게 공부해�
 
 이를 통해 JDBC를 보다 편리하게 사용할 수 있게 되었다.
 
+대표적인 기술은 스프링의 JdbcTemplate, MyBatis 가 있다.
 
 ## Spring JDBC
 ---
@@ -68,7 +69,7 @@ ResultSet을 자동으로 객체로 변환하고, PreparedStatement 및 Callable
 
 Spring JDBC는 스프링의 트랜잭션 관리 기능과 통합된다. 기존에는 Service에서 커밋과 롤백을 설정했었다면 Spring에서는 자동으로 관리해준다. 
 트랜잭션 경계 설정, 롤백, 커밋 등의 작업을 편리하게 처리할 수 있다.
-
+@Transactional 어노테이션을 사용하여 메서드 레벨에서 트랜잭션을 선언할 수도 있다.
 
 **5) 다양한 Callback 및 템플릿**
 
@@ -133,6 +134,12 @@ JDBC API만을 사용할 때보다, Connection에 대한 Configuration을 JdbcTe
 | 트랜잭션 제어                               | O                                            |                                           |
 | 연결, statement, resultSet 닫기            | O                                            |                                           |
 
+
+그 외에 jdbcTemplate의 주요한 기능을 살펴보면, 
+- PreparedStatement 사용 : SQL 파라미터 값을 설정하기 위해 ?(placeholder)를 사용하고, JdbcTemplate이 자동으로 PreparedStatement를 생성하고 파라미터 값을 설정한다. 이를 통해 **SQL 인젝션 공격을 방지**할 수 있다.
+- ResultSet 매핑 : JdbcTemplate은 ResultSet을 자동으로 자바 객체로 매핑한다
+  - RowMapper 인터페이스를 구현하여 ResultSet의 각 행을 객체로 변환할 수 있다.
+  - BeanPropertyRowMapper와 같은 구현체를 사용하여 자바 객체의 프로퍼티와 ResultSet의 컬럼을 자동으로 매핑할 수도 있다.
 
 
 
