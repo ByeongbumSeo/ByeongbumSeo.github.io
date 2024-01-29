@@ -18,6 +18,10 @@ tags:
 나와 같은 주니어 개발자들은 이제 사실상 jdbcTemplate보다는 JPA, QueryDsl이나 MyBatis 등을 대부분 이용하고 공부하겠지만 !(이제 MyBatis는 JPA로 대체되고 있지만, 우리나라에서는 아직 많은 회사에서 사용 중이므로 반드시 공부해야하는 스킬이라고 생각한다.)
 jdbcTemplate은 허들이 높은 스킬이 아니므로, 간단하게 공부해놓으면 추후에 도움이 될 것이라 생각하므로 정리한다.
 
+jdbcTemplate을 알기 전에 우선 JDBC가 무엇이고, 이를 왜 사용하는 지에 대해서 간략하게 설명하자면 아래와 같다.  
+> - JDBC : Java에서 DB에 접속할 수 있도록 하는 Java API
+> - JDBC API를 통해 추상화된 인터페이스를 제공하고, 각 벤더사에서 각자의 DBMS에 따라 구현해놓은 드라이버를 설치하여 사용하는 방식으로 DB에 접근한다. 이를 통해 어떤 DB를 사용하든 개발자가 JDBC를 사용하는 방법은 변하지 않는다.
+
 ## 다루는 내용
 이 글에서는 jdbcTemplate 를 설명하며 연관 지식으로
 - JDBC
@@ -45,9 +49,10 @@ jdbcTemplate은 허들이 높은 스킬이 아니므로, 간단하게 공부해�
 
 ## Spring JDBC
 ---
-- Spring JDBC는 스프링 프레임워크에서 제공하는 JDBC 기반의 데이터 액세스 기술
-
-Spring JDBC는 JDBC를 보다 쉽고 효율적으로 사용할 수 있도록 추상화된 기능을 제공하는데, 이를 통해 개발자는 반복적이고 번거로운 JDBC 작업을 간소화하고 생산성을 향상시킬 수 있다.
+- Spring JDBC는 Spring Framwork에서 제공하는 JDBC 기반의 데이터 액세스 기술
+- Spring JDBC는 JDBC를 보다 쉽고 효율적으로 사용할 수 있도록 추상화된 기능(라이브러리)을 제공하는데, 이를 통해 개발자는 JDBC의 모든 저수준 처리를 스프링 프레임워크에 위임하며 반복적이고 번거로운 작업을 간소화하고 생산성을 향상시킬 수 있다.
+- 패키지명 : org.springframe.jdbc.core
+- JdbcTemplate, SimpleJdbcInsert, NamedParameterJdbcTemplate 객체와 Helper 객체(RowMapper) 등을 포함한다.
 
 Spring JDBC는 아래와 같은 특징을 가진다.
 
@@ -79,9 +84,6 @@ Spring JDBC는 JdbcTemplate, NamedParameterJdbcTemplate, SimpleJdbcTemplate 등�
 
 ## jdbcTemplate 이란?
 ---
-jdbcTemplate을 알기 전에 우선 JDBC가 무엇이고, 이를 왜 사용하는 지에 대해서 간략하게 설명하자면 아래와 같다.  
-> - JDBC : Java에서 DB에 접속할 수 있도록 하는 Java API
-> - JDBC API를 통해 추상화된 인터페이스를 제공하고, 각 벤더사에서 각자의 DBMS에 따라 구현해놓은 드라이버를 설치하여 사용하는 방식으로 DB에 접근한다. 이를 통해 어떤 DB를 사용하든 개발자가 JDBC를 사용하는 방법은 변하지 않는다.
 
 JDBC를 사용하는 방법은 아래와 같다.
 1. DriverManager를 이용해서 Connection 인스턴스를 얻는다.
@@ -145,4 +147,28 @@ JDBC API만을 사용할 때보다, Connection에 대한 Configuration을 JdbcTe
 
 ## JdbcTemplate 사용법
 ---
-Spring Framework에서 제공하는 Spring JDBC
+### 0) JdbcTemplate 설정
+
+#### spring-jdbc 라이브러리 추가
+JdbcTemplate을 사용하기 위해서는 먼저 jdbc 라이브러리를 프로젝트에 추가해야 한다. (spring-jdbc에 jdbcTemplate 포함)
+
+- (Gradle 기준)build.gradle에 추가  
+```gradle
+//JdbcTemplate 추가
+implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+```
+
+#### DataSource 주입
+
+그 후 DataSource 를 주입해준다.
+
+```java
+private final JdbcTemplate jdbcTemplate;
+
+public JdbcTemplateItemRepository(DataSource dataSource) {
+	this.jdbcTemplate = new JdbcTemplate(dataSource);
+}
+```
+
+JdbcTemplate은 DataSource를 필요로 한다. DataSource는 스프링 빈으로 등록되어 있어야 한다. 
+이렇게 JdbcTemplate을 사용할 때 DataSource를 의존 관계 주입받는 방법과, JdbcTemplate을 스프링 빈으로 직접 등록하고 주입받는 방법이 있지만 전자를 관례상 많이 사용한다.
