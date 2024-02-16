@@ -19,6 +19,7 @@ IntelliJ로 새로운 프로젝트를 생성하던 중, JDK에 대해서 정확�
 JDK, JRE, JVM은 Java를 다루는 개발자들에게는 필수적으로 알아야할 요소이기 때문이다.
 
 > 한 번 쓰고 모든 곳에서 실행한다 (Write Once, Run Anywhere, WORA)
+
 라는 Java의 철학을 구현한 JVM과 그것을 포함하는 JRE, JDK에 대해서 상세히 설명하려 한다.
 
 
@@ -33,10 +34,9 @@ JDK, JRE, JVM은 Java를 다루는 개발자들에게는 필수적으로 알아�
 ---
 JDK는 Java Development Kit의 약자로, Java용 SDK라 생각하면 된다.
 
-> **SDK**
-    Software Development Kit(소프트웨어 개발 키트)로 하드웨어 플랫폼, 운영체제 또는 프로그래밍 언어 제작사가 제공하는 툴이다.
+> **SDK**  
+    Software Development Kit(소프트웨어 개발 키트)로 하드웨어 플랫폼, 운영체제 또는 프로그래밍 언어 제작사가 제공하는 툴이다.  
     키트의 요소는 제작사마다 다르며 SDK의 대표적인 예로 안드로이드 스튜디오 등이 있다.
-
     이 SDK를 활용하여 어플리케이션을 개발할 수 있다.
 
 따라서 JDK는 Java 프로그램 실행에 필요한 **JRE** 와 Java 개발 시 필요한 라이브러리들 그리고 javac, javadoc 등의 개발 도구들을 포함하고 있다.
@@ -52,7 +52,7 @@ JDK는 Java Development Kit의 약자로, Java용 SDK라 생각하면 된다.
 
 Java의 버전을 표현할 때에는 보통 JDK 또는 Java SE 버전으로 나타낸다.
 
-초기 버전인 1.0/1.1 버전에서는 *JDK 1.0* / *JDK 1.2* 와 같이 버전을 표기했지만, JDK 1.2 이후부터는 *J2SE*(Java2 Standard Edition)로 표기 명칭이 바뀌고, 2006년 JDK 1.6부터는 *Java SE*(Java Standard Edition)으로 다시 한번 변경되었다.
+초기 버전인 1.0/1.1 버전에서는 *JDK 1.0* / *JDK 1.2* 와 같이 버전을 표기했지만, JDK 1.2 이후부터는 *J2SE* (Java2 Standard Edition)로 표기 명칭이 바뀌고, 2006년 JDK 1.6부터는 *Java SE* (Java Standard Edition)으로 다시 한번 변경되었다.
 
 따라서 JDK를 다운로드하는 공식 사이트에 가면 다음과 같이 Java 버전이 표기되어 있는 것을 볼 수 있다.
 ![JDK 버전 표기](/assets/img/posts/2024-02-14-00-10-47.png)
@@ -72,8 +72,22 @@ Java 상세 버전 표기법은 다음과 같다.
 
 [^2]: Oracle 등의 회사에서 Java와 같은 소프트웨어 제품에 대해서 장기 지원한다는 것을 의미한다. 이는 기업 및 조직이 안정적이고 신뢰할 수 있는 환경에서 Java 애플리케이션을 개발하고 운영할 수 있게 하고 따라서 많은 기업은 LTS 버전을 기반으로 Java 애플리케이션을 개발하고 운영한다.
 
+추가로,
+JDK는 개발자의 자바 프로그램에 대한 컴파일러를 제공하기 때문에 곧, 코드를 작성할 수 있는 자바 버전을 결정한다.  
+예를 들어, 화살표 람다 연산자(Lambda Operator)처럼 자바 8에 있는 좀 더 새로운 기능 지원을 사용하고 싶다면, 컴파일을 위해 최소한 자바 8 JDK가 필요할 것이다. 그렇지 않은 경우, javac 명령이 구문 오류를 표시하면서 해당 코드를 거부할 것이다.
 
-### Java의 다양한 Editions
+
+
+### Java의 다양한 Editions (JDK 패키지)
+
+자바 버전 선택과 함께, 자바 패키지도 선택해야 한다. 
+
+패키지(Package)란 서로 다른 유형의 개발을 표적으로 하는 자바 개발 키트다. 가용 패키지로는 Java SE(Standard Edition), Java EE(Enterprise Edition), 그리고 Java ME(Mobile Edition) 등이 있다.
+
+일반적으로, 개별 JDK 버전은 자바 SE를 포함하고 있다. Java EE나 Java ME를 다운로드하면, 표준 에디션(Standard Edition, SE)도 얻는 것이다. 
+
+초보 개발자라면 어느 패키지가 자신의 프로젝트에 맞는지 확신이 서지 않을 수 있는데, 다행히도 나중에 다른 JDK로 전환하는 것이 어렵지 않으니 알맞은 자바 버전과 JDK 패키지 선정에 대해 너무 걱정하지 않아도 괜찮다.
+
 
 #### Java SE(Java Standard Edition)
 : 가장 기본이 되는 표준 에디션의 자바 플랫폼으로 자바 언어의 핵심 기능을 제공
@@ -86,6 +100,7 @@ Java 상세 버전 표기법은 다음과 같다.
 #### Java EE(Java Enterprise Edition)
 : 대규모 기업용 에디션. SE확장판(대형 네트워크환경 프로그램 개발시)
 
+- 자바 빈(JavaBeans)이나 객체 관계 매핑(Object Relational Mapping, ORM) 지원
 - 기업환경을 위한 대규모 솔루션 개발, 모바일폰, 셋탑 박스, 차량용 텔레매틱스 시스템 개발
 
 
@@ -100,6 +115,12 @@ Java 상세 버전 표기법은 다음과 같다.
 : 가볍고 예쁜 그래픽 사용자 인터페이스(GUI)를 제공하는 에디션
 
 - 고성능의 하드웨어 그래픽 가속과 미디어 엔진 API를 제공해주어서 프로그램의 성능에 신경을 써야하는 분야에서 사용
+
+
+## JRE
+
+RE는 단지 자바 프로그램을 구동하기 위한 독립형 구성요소로써 사용될 수도 있지만, 동시에 JDK의 일부이기도 하다. 자바 프로그램을 구동하는 것이 자바 프로그램 개발의 일환이기 때문에 JDK는 JRE를 필요로 한다.
+
 
 
 ## : Reference
