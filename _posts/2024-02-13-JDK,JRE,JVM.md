@@ -143,7 +143,7 @@ System.out.println,
 
 ## JAVA_HOME (정리 필요)
 
-: Java가 설치된 Directory. 이 디렉토리의 /bin 폴더안에 Java.exe, Javac.exe 등이 있다. 따
+: Java가 설치된 Directory. 이 디렉토리의 /bin 폴더안에 Java.exe, Javac.exe 등이 있다.
 
 Java를 설치한다는 것은 JDK 또는 JRE를 설치하는 것을 말한다. 보통은 JDK를 설치함. 개발을 하기 위해 Java를 설치하기 때문.
 
@@ -188,9 +188,36 @@ C언어로 짠 코드를 윈도우 용으로 컴파일하게 되면, 맥이나 �
 
 
 
+현재 Java 언어는 Oracle이 맡아서 관리하고 있다.
+여기에서 Java 언어의 표준을 정하고 새로운 버전들을 개발한다.
+
+24년 2월 현재 Java는 21 버전까지 나와있으며, 이는 LTS(Long Time Support) 버전이다.
+LTS는 장기지원버전으로서 17,11,8 버전이 이에 해당한다. 이 버전들은 오랫동안 업데이트나 보안 수정이 장기간 제공되며 '오래 쓰라고 제대로 각잡고 만든 버전'이라고 생각하면 된다.
+실무에서 개발할 때는 안정적인 LTS 버전을 사용한다. LTS 버전 사이의 버전들은 다음 LTS를 위한 실험적 버전이라고 생각하면 된다. 새로운 기능들을 빠르게 사용할 수 있긴 하지만 해당 버전의 지원이 짧기 때문에 실무에서는 사용하지 않는다.
+
+Oracle에서는 이렇게 Java의 버전들을 만들 뿐 아니라 이를 개발할 때 사용하는 JDK도 출시한다.
+Oracle에서 출시하는 JDK에는 두 종류가 있는데 상업적으로 사용하는 유료 'Oracle JDK' 와 무료 오픈소스 버전인 'Open JDK' 이다.
+
+당연하게도 유료인 Oracle JDK가 보다 많은 기능과 좋은 성능을 갖추고 있지만 무료인 Open JDK도 개인이나 소규모 기업에서 사용하기에는 충분한 안정성을 갖고 있다고 한다.
+
+JDK는 Oracle에서만 만드는 것이 아니라 Microsoft, IBM, Red Hat, Amazon, Eclipse 등에서 무료 또는 유료로 만들어서 배포하고 있다.
+
+즉, Java란 언어와 그 표준은 Oracle에서 관리하지만, Java로 소프트웨어를 개발하고 실행하는 JDK는 여러 곳에서 다양한 제품들이 만들어져 출시된다. JDK도 결국 소프트웨어 제품이기 때문이다.
+
+이는 https://whichjdk.com/ 에서 각각의 특성과 권장 용도를 확인할 수 있다.
+기본적으로 기능 자체는 동일하나 성능과 비용에 약간의 차이가 있을 수 있다.
+예를 들어 Amazon의 Corretto JDK는 자사에서 제공하는 AWS 환경에서 동작하는데 최적화되어 있다. 어떤 용도로, 어느 규모의 조직이나 회사에서 사용하느냐에 따라 알맞은 JDK를 다운받아서 사용하면 된다.
+
+
+
+---
+바이너리 코드 : 컴퓨터가 인식할 수 있는 0과 1로 구성된 이진 코드를 의미한다.
+바이트 코드 : 가상 머신이 이해할 수 있는 0과 1로 구성된 이진 코드를 의미한다. 바이트 코드는 다시 실시간 번역기 또는 JIT(Just-In-Time) 컴파일러에 의해 바이너리 코드로 변환된다.
+
 ## : Reference
 
 - [Oracle - Java Archive](https://www.oracle.com/kr/java/technologies/downloads/archive/#JavaSE)
+- [위키백과 - 자바 버전 역사](https://ko.wikipedia.org/wiki/%EC%9E%90%EB%B0%94_%EB%B2%84%EC%A0%84_%EC%97%AD%EC%82%AC)
 - [Inpa Dev - JDK, JRE, JVM 개념 & 구성 원리](https://inpa.tistory.com/entry/JAVA-%E2%98%95-JDK-JRE-JVM-%EA%B0%9C%EB%85%90-%EA%B5%AC%EC%84%B1-%EC%9B%90%EB%A6%AC-%F0%9F%92%AF-%EC%99%84%EB%B2%BD-%EC%B4%9D%EC%A0%95%EB%A6%AC)
 - [얄팍한 코딩사전 - 자바를 알아보자 (+ JVM, JRE, JDK의 정체)](https://www.youtube.com/watch?v=OxvtGYvVkRU)
 - [기술노트with 알렉 - JDK, JRE, JVM](https://www.youtube.com/watch?v=x4XDInEA8Xk)
