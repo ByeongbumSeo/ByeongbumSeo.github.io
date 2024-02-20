@@ -121,9 +121,30 @@ JDK는 개발자의 자바 프로그램에 대한 컴파일러를 제공하기 �
 ### JDK 종류
 
 Java 소스 코드 자체는 오픈소스다.
-그래서 오픈소스인 Java 소스코드를 빌드하여 사용하는 것에는 거의 제약이 없지만 Oracle에서 제공하는 설치버전의 JDK에는 NFTC 라이센스가 적용되어 회사에서는 사용할 수 없게 된다. (따로 구매해야함.)
+그래서 오픈소스인 Java 소스코드를 빌드하여 사용하는 것에는 거의 제약이 없지만 Oracle에서 제공하는 설치버전의 JDK에는 NFTC(No-Fee Terms and Conditions) 라이센스가 적용되어 회사에서는 사용할 수 없게 된다. (따로 구매해야함.)  
+> 참고 : [Oracle No-Fee Terms and Conditions (NFTC)](https://www.oracle.com/downloads/licenses/no-fee-license.html)
 
-따라서 무료 라이센스를
+따라서 무료 라이센스를 제공하는 또다른 JDK 버전을 여러 회사에서 출시했고 지금의 JDK 환경이 갖춰졌다.
+
+- JDK에 대한 간단한 비교는 아래 표를 참고
+
+| Provider           | Free Builds from Source | Free Binary Distributions | Extended Updates | Commercial Support | Permissive License | Website                                             |
+|--------------------|-------------------------|---------------------------|------------------|-------------------|--------------------|-----------------------------------------------------|
+| AdoptOpenJDK       | Yes                     | Yes                       | Yes              | No                | Yes                | [adoptopenjdk.net](https://adoptopenjdk.net)       |
+| Amazon – Corretto  | Yes                     | Yes                       | Yes              | No                | Yes                | [aws.amazon.com/corretto](https://aws.amazon.com/corretto) |
+| Azul Zulu          | No                      | Yes                       | Yes              | Yes               | Yes                | [azul.com/downloads/zulu/](https://www.azul.com/downloads/zulu/) |
+| BellSoft Liberica  | No                      | Yes                       | Yes              | Yes               | Yes                | [bell-sw.com/java.html](https://bell-sw.com/java.html) |
+| IBM                | No                      | No                        | Yes              | Yes               | Yes                | [ibm.com/developerworks/java/jdk](https://www.ibm.com/developerworks/java/jdk) |
+| jClarity           | No                      | No                        | Yes              | Yes               | Yes                | [jclarity.com/adoptopenjdk-support/](https://www.jclarity.com/adoptopenjdk-support/) |
+| OpenJDK            | Yes                     | Yes                       | Yes              | No                | Yes                | [adoptopenjdk.net/upstream.html](https://adoptopenjdk.net/upstream.html) |
+| Oracle JDK         | No                      | Yes                       | No**             | Yes               | No                 | [oracle.com/technetwork/java/javase/downloads](https://www.oracle.com/technetwork/java/javase/downloads) |
+| Oracle OpenJDK     | Yes                     | Yes                       | No               | No                | Yes                | [jdk.java.net](https://jdk.java.net)               |
+| ojdkbuild          | Yes                     | Yes                       | No               | No                | Yes                | [github.com/ojdkbuild/ojdkbuild](https://github.com/ojdkbuild/ojdkbuild) |
+| RedHat             | Yes                     | Yes                       | Yes              | Yes               | Yes                | [developers.redhat.com/products/openjdk/overview](https://developers.redhat.com/products/openjdk/overview) |
+| SapMachine         | Yes                     | Yes                       | Yes              | Yes               | Yes                | [sap.github.io/SapMachine](https://sap.github.io/SapMachine) |
+
+
+> 출처 : [stackoverflow - difference-between-openjdk-and-adoptium-adoptopenjdk](https://stackoverflow.com/questions/52431764/difference-between-openjdk-and-adoptium-adoptopenjdk)
 
 
 ## JRE (Java Runtime Environment)
