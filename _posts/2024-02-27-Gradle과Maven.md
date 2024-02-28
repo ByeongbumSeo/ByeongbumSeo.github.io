@@ -29,6 +29,66 @@ Gradle과 Maven은 둘 다 프로젝트 빌드, 의존성 관리 등을 자동�
 - Gradle
 - Maven
 
+## 빌드 관리 도구란?
+---
+
+- 우리가 프로젝트에서 작성한 java 코드와 프로젝트 내에 필요한 각종 xml, properties, jar 파일들을 JVM이나 WAS가 인식할 수 있도록 패키징 해주는 빌드 과정 == "빌드 자동화 도구" 라고 할 수 있다!
+
+- 프로젝트 생성, 테스트 빌드, 배포 등의 작업을 위한 전용 프로그램이라 할 수 있다.
+
+- 애플리케이션을 개발하면서, 일밙겅르로 개발에 필요한 다양한 외부 라이브러리들을 다운로드하고, 
+
+해당 라이브러리를 사용하여 개발해야하는 상황이 많다.
+
+이 때 각 라이브러리들을 번거롭게 모두 다운받을 필요없이, 빌드도구 설정파일에 필요한 라이브러리 종류와 버전들, 종속성 정보를 명시하여
+
+필요한 라이브러리들을 설정파일을 통해 자동으로 다운로드 해주고 이를 간편히 관리해주는 도구이다.
+
+​
+## Maven
+---
+
+​
+
+- Maven은 Java용 프로젝트 관리도구로 Apache의 Ant 대안으로 만들어졌다.
+
+- 빌드 중인 프로젝트, 빌드 순서, 다양한 외부 라이브러리 종속성 관계를 pom.xml파일에 명시한다.
+
+- Maven은 외부저장소에서 필요한 라이브러리와 플러그인들을 다운로드 한다음, 로컬시스템의 캐시에 모두 저장한다.
+
+​
+
+- 예를 들어, "Spring Boot Data JPA Starter" 모듈을 사용하여 프로젝트를 개발하고 싶다면 메이븐레포지토리에서 해당 모듈을 검색하여 xml 설정파일에 추가하여 사용할 수 있다. (참고로 maven용 코드 이외에도 gradle용 코드도 탭에 있다.)
+
+https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa/2.2.4.RELEASE
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+    <version>2.2.4.RELEASE</version>
+</dependency>
+```
+
+## Gradle
+---
+
+- Apacahe Maven과 Apache Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다. (완전한 오픈소스)
+
+- Groovy 언어를 사용한 Domain-specific-language를 사용한다. (설정파일을 xml파일을 사용하는 Maven보다 코드가 훨씬 간결하다.)
+
+- 2007년에 처음 개발되었고, 2013년에 구글에 의해 안드로이드 프로젝트의 빌드 시스템으로 채택되었다.
+
+- 꽤 큰규모로 예상되는 multi-project 빌드를 도울 수 있도록 디자인되었다.
+
+- Gradle은 프로젝트의 어느부분이 업데이트되었는지 알기 때문에, 빌드에 점진적으로 추가할 수 있다.
+
+-> 업데이트가 이미 반영된 빌드의 부분은 즉 더이상 재실행되지 않는다. (따라서 빌드 시간이 훨씬 단축될 수 있다!)
+
+​
+
+
 
 ## Gradle vs Maven
 ---
@@ -55,3 +115,8 @@ Gradle과 Maven은 둘 다 프로젝트 빌드, 의존성 관리 등을 자동�
 
 산업 표준 및 커뮤니티 지원: Gradle과 Maven은 모두 널리 사용되는 산업 표준 빌드 도구이며, 각각의 커뮤니티와 생태계가 형성되어 있습니다. 서버 개발자로서는 이러한 도구에 대한 이해와 숙련이 필요하며, 온라인 커뮤니티에서의 지원을 받을 수 있습니다.
 
+
+## : Reference
+---
+- [지수의 개발 기록장 - Maven,Gradle](https://jisooo.tistory.com/entry/Spring-%EB%B9%8C%EB%93%9C-%EA%B4%80%EB%A6%AC-%EB%8F%84%EA%B5%AC-Maven%EA%B3%BC-Gradle-%EB%B9%84%EA%B5%90%ED%95%98%EA%B8%B0)
+- [무작정 개발 - Maven,Gradle](https://backendcode.tistory.com/199)
