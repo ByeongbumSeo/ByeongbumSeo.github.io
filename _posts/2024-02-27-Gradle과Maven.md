@@ -71,6 +71,18 @@ https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-
 </dependency>
 ```
 
+### POM - Project Object Model
+pom은 Project Object Model 의 약자로 이름 그대로 Project Object Model의 정보를 담고있는 파일이다. 이 파일에서 주요하게 다루는 기능들은 다음과 같다.
+
+- 프로젝트 정보 : 프로젝트의 이름, 개발자 목록, 라이센스 등
+- 빌드 설정 : 소스, 리소스, 라이프 사이클별 실행한 플러그인(goal)등 빌드와 관련된 설정
+- 빌드 환경 : 사용자 환경 별로 달라질 수 있는 프로파일 정보
+- POM연관 정보 : 의존 프로젝트(모듈), 상위 프로젝트, 포함하고 있는 하위 모듈 등
+
+POM은 pom.xml파일을 말하며 Maven의 기능을 이용하기 위해 POM이 사용된다.
+
+
+
 
 ### 장점
 
