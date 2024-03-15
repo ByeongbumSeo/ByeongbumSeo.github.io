@@ -125,6 +125,9 @@ Phase : Maven의 Build Life Cycle의 각각의 단계를 의미
 ## Gradle
 ---
 
+그래 들(Gradle)은 Maven 이후에 나온 최신 Java 빌드 도구로 '그루비(Groovy)' 문법을 사용해서 작성한다.
+`Build.gradle`에 스크립트를 작성하며, 대규모 프로젝트에서 복잡해지는 경향이 있는 XML 기반 스크립트에 비해 관리가 편하다는 장점이 있다. 현재 안드로이드(Android) 프로젝트의 표준 빌드 도구로 채택되어 있기도 하다.
+
 - Apacahe Maven과 Apache Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다. (완전한 오픈소스)
 
 - Java, Groovy, Kotlin 등의 언어들을 지원한다.
@@ -140,8 +143,27 @@ Phase : Maven의 Build Life Cycle의 각각의 단계를 의미
 -> 업데이트가 이미 반영된 빌드의 부분은 즉 더이상 재실행되지 않는다. (따라서 빌드 시간이 훨씬 단축될 수 있다!)
 
 ​
+### Gradle의 장점
+ 
+#### (1) 간결한 스크립트
+Gradle 이전의 빌드 도구인 Ant와 Maven은 XML 문법으로 스크립트를 작성하였다.
+XML은 여는 태그와 닫는 태그를 넣어야 하기에 복잡한 빌드 스크립트를 작성하기가 어려우며 가독성이 떨어진다.
+반면, Gradle은 Groovy 문법으로 간결한 스크립트를 작성할 수 있다.
+ 
+#### (2) 빌드 속도
+프로젝트 규모가 커지게 되면 빌드 속도 차이가 개발 생산성에 큰 영향을 미치게 된다.
+Gradle은 캐싱(caching)을 하기 때문에 이전 빌드 도구보다 빌드 속도가 빠르다.
+ 
+※ 하단 링크 페이지에 빌드 캐시(Build cache)를 이용할 경우 Gradle이 Maven의 빌드 속도가 최대 100배까지 벌어질 수 있다고 적혀 있다.
+[Gradle 공식페이지 - Gradle vs Maven Comparison](https://gradle.org/maven-vs-gradle/)
 
 
+#### (3) 멀티 프로젝트 빌드
+대규모 Java 프로젝트는 대부분 다중 모듈로 구성된다.
+
+즉, 하나의 프로젝트 안에 여러 모듈이 동시에 개발되며, 각 모듈이 공통으로 사용하는 모듈도 만들어지게 되는데 이렇게 동시에 여러 모듈을 개발하게 되는 경우 각각 따로 빌드 작업을 하면 번거로울 뿐만 아니라 실수가 생기기도 쉽다.
+
+Gradle의 멀티 프로젝트 빌드 기능을 이용하면 이런 번거로움과 실수를 획기적으로 줄일 수 있다.
 
 ## Gradle vs Maven
 ---
@@ -193,3 +215,6 @@ gradle은 Groovy를 사용하기 때문에 동적인 빌드는 Groovy 스크립�
 ---
 - [지수의 개발 기록장 - Maven,Gradle](https://jisooo.tistory.com/entry/Spring-%EB%B9%8C%EB%93%9C-%EA%B4%80%EB%A6%AC-%EB%8F%84%EA%B5%AC-Maven%EA%B3%BC-Gradle-%EB%B9%84%EA%B5%90%ED%95%98%EA%B8%B0)
 - [무작정 개발 - Maven,Gradle](https://backendcode.tistory.com/199)
+- [smlee - Maven과 Gradle의 개념 및 비교](https://velog.io/@leesomyoung/Maven%EA%B3%BC-Gradle%EC%9D%98-%EC%B0%A8%EC%9D%B4-%EB%B0%8F-%EB%B9%84%EA%B5%90)
+- [HyoJun Blog - Maven과 Gradle의 차이](https://hyojun123.github.io/2019/04/18/gradleAndMaven/)
+- [coco3o - 메이븐(Maven)과 그래들(Gradle)의 개념 및 비교](https://dev-coco.tistory.com/65)
