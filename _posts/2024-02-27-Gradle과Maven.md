@@ -122,9 +122,9 @@ Maven의 기능을 이용하기 위해 POM(`pom.xml`)이 사용된다.
 
 메이븐(Maven)에서는 미리 정의하고 있는 빌드 순서가 있는데 이 순서를 라이프사이클(Life Cycle)이라고 하며, 정해진 Lifecycle에 의하여 작업을 수행한다.
 
-> clean - validate - compile - test - package - verify - install - site - deploy의 라이프 사이클을 가진다.
-
 라이프 사이클에서 각각의 빌드 단계를 Phase라고 하는데 Phase들은 의존 관계를 가지고 있어 해당 Phase가 수행되려면 이전 단계의 Phase가 모두 수행되어야 한다.
+
+> clean - validate - compile - test - package - verify - install - site - deploy의 라이프 사이클을 가진다.
 
 - Clean : 이전 빌드에서 생성된 파일들을 삭제하는 단계
 - Validate : 프로젝트가 올바른지 확인하고 필요한 모든 정보를 사용할 수 있는지 확인하는 단계
@@ -137,6 +137,7 @@ Maven의 기능을 이용하기 위해 POM(`pom.xml`)이 사용된다.
 - Deploy : 만들어진 패키지(Package)를 원격 저장소에 release 하는 단계
 
 위의 라이프 사이클(Life Cycle) 외에도 더 많은 라이프 사이클이 존재한다.
+
 이를 크게 Clean, Build, Site 3가지 라이프 사이클로 나누고 있고, 각 단계를 모두 수행하는 것이 아니라 원하는 단계까지만 수행할 수 있다.
 
 
@@ -162,7 +163,7 @@ Apache Ant는 비교적 자유도가 높은 편이고, Maven은 정해진 라이
 ## Gradle
 ---
 
-그래 들(Gradle)은 Maven 이후에 나온 최신 Java 빌드 도구로 '그루비(Groovy)' 문법을 사용해서 작성한다.
+그래들(Gradle)은 Maven 이후에 나온 최신 Java 빌드 도구로 '그루비(Groovy)' 문법을 사용해서 작성한다.
 `Build.gradle`에 스크립트를 작성하며, 대규모 프로젝트에서 복잡해지는 경향이 있는 XML 기반 스크립트에 비해 관리가 편하다는 장점이 있다. 현재 안드로이드(Android) 프로젝트의 표준 빌드 도구로 채택되어 있기도 하다.
 
 - Apacahe Maven과 Apache Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다. (완전한 오픈소스)
@@ -192,6 +193,19 @@ Apache Ant는 비교적 자유도가 높은 편이고, Maven은 정해진 라이
 Maven을 대체할 수 있는 프로젝트 구성 관리 및 범용 빌드 툴이며, Ant Builder와 Groovy script를 기반으로 구축되어 기존 Ant의 역할과 배포 스크립의 기능을 모두 사용가능하며 스프링부트와 안드로이드에서 사용된다.
 
 빌드 속도가 Maven에 비해 10~100배 가량 빠르며, Java, C/C++, Python 등을 지원한다.
+
+
+
+### 빌드 라이프 사이클
+
+- Initialization : 빌드 환경을 설정하고 참여할 프로젝트를 결정한다.
+- Configuration : 빌드에 대한 작업 그래프를 구성한다. 사용자가 실행하려는 작업에 따라 실행해야 하는 작업과 순서를 결정한다.
+- Execution : 구성 단계가 끝날 때 선택한 작업을 실행한다.
+
+### 프로젝트 설정 방법
+- build.gradle : 빌드에 대한 모든 기능을 정의, 환경 설정, 빌드 방법, 라이브러리 정보를 기술하여 프로젝트의 관리 환경울 구성
+
+- setting.gradle : 프로젝트 구성을 할 때 작성하는 파일. 프로젝트간의 의존성 및 멀티 프로젝트를 구성할 때 사용
 
 
 #### Groovy?
