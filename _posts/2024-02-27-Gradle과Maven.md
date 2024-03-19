@@ -163,55 +163,91 @@ Apache Ant는 비교적 자유도가 높은 편이고, Maven은 정해진 라이
 ## Gradle
 ---
 
-그래들(Gradle)은 Maven 이후에 나온 최신 Java 빌드 도구로 '그루비(Groovy)' 문법을 사용해서 작성한다.
+그래들(Gradle)은 Maven 이후에 나온 최신 Java 빌드 도구로 '그루비(Groovy)[^2]' 문법을 사용해서 작성한다.
+
 `Build.gradle`에 스크립트를 작성하며, 대규모 프로젝트에서 복잡해지는 경향이 있는 XML 기반 스크립트에 비해 관리가 편하다는 장점이 있다. 현재 안드로이드(Android) 프로젝트의 표준 빌드 도구로 채택되어 있기도 하다.
 
-- Apacahe Maven과 Apache Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다. (완전한 오픈소스)
+Groovy 스크립트 언어로 구성되어 있기에 XML과 달리 변수선언, if, else, for 등의 로직을 구현할 수 있고 간결한 작성이 가능하다.
+
+- Apacahe Maven과 Apache Ant에서 볼수 있는 개념들을 사용하는 대안으로써 나온 프로젝트 빌드 관리 툴이다. (완전한 오픈소스). 따라서 Maven을 완전 지원한다.[^1]
 
 - Java, Groovy, Kotlin 등의 언어들을 지원한다.
 
-- Groovy 언어를 사용한 Domain-specific-language를 사용한다. (설정파일을 xml파일을 사용하는 Maven보다 코드가 훨씬 간결하다.)
+- Build Script를 Groovy 기반의 DSL(Domail Specific Language)를 사용하여 코드로서 설정 정보를 구성하므로 xml파일을 사용하는 Maven보다 코드가 훨씬 간결하다.
 
-- 2007년에 처음 개발되었고, 2013년에 구글에 의해 안드로이드 프로젝트의 빌드 시스템으로 채택되었다.
+- multi-project 빌드를 도울 수 있도록 디자인되었다.
 
-- 꽤 큰규모로 예상되는 multi-project 빌드를 도울 수 있도록 디자인되었다.
+- Gradle은 바뀐 파일들에 대해서만 재빌드가 일어난다. 따라서 빌드 속도가 Maven에 비해 10~100배 가량 빠르다.
 
-- Gradle은 프로젝트의 어느부분이 업데이트되었는지 알기 때문에, 빌드에 점진적으로 추가할 수 있다.
+[^1]: 메이븐(Maven)의 pom.xml을 Gradle 용으로 변환할 수도 있으며 Maven의 중앙 저장소도 지원하기 때문에 라이브러리를 모두 그대로 가져다 사용할 수 있다.
 
--> 업데이트가 이미 반영된 빌드의 부분은 즉 더이상 재실행되지 않는다. (따라서 빌드 시간이 훨씬 단축될 수 있다!)
-
-
-
-가독성이 좋다 : 코딩에 의한 간결한 정의가 가능하므로 가독성이 좋다.
-재사용에 용이 : 설정 주입 방식(Configuration Injection)을 사용하므로 재사용에 용이하다.
-구조적인 장점 : Build Script를 Groovy 기반의 DSL(Domail Specific Language)를 사용하여 코드로서 설정 정보를 구성하므로 구조적인 장점이 있다.
-편리함 : Gradle 설치 없이 Gradle wrapper를 이용하여 빌드를 지원한다.
-멀티 프로젝트 : Gradle은 멀티 프로젝트 빌드를 지원하기 위해 설계된 빌드 관리 도구이다.
-지원: Maven을 완전 지원한다.
-
----
-Maven을 대체할 수 있는 프로젝트 구성 관리 및 범용 빌드 툴이며, Ant Builder와 Groovy script를 기반으로 구축되어 기존 Ant의 역할과 배포 스크립의 기능을 모두 사용가능하며 스프링부트와 안드로이드에서 사용된다.
-
-빌드 속도가 Maven에 비해 10~100배 가량 빠르며, Java, C/C++, Python 등을 지원한다.
-
-
+[^2]: Groovy는 JVM에서 실행되는 스크립트 언어이다. 따라서 JVM에서 동작하지만 소스코드를 컴파일할 필요 없다. Java와 호환되며, Java class 파일들을 Groovy class로 사용 가능하다.
+Java 문법과 유사하여 빌드 처리를 관리할 수 있다.
 
 ### 빌드 라이프 사이클
 
-- Initialization : 빌드 환경을 설정하고 참여할 프로젝트를 결정한다.
-- Configuration : 빌드에 대한 작업 그래프를 구성한다. 사용자가 실행하려는 작업에 따라 실행해야 하는 작업과 순서를 결정한다.
-- Execution : 구성 단계가 끝날 때 선택한 작업을 실행한다.
+Gradle 빌드에는 세 가지 단계가 있다.
+
+1. Initialization(초기화)
+
+Gradle은 단일 및 다중 프로젝트 빌드를 지원한다. 초기화 단계에서 Gradle은 빌드에 참여할 프로젝트를 결정하고 각 프로젝트에 대한 Project 인스턴스를 생성한다.
+
+2. Configuration(구성)
+
+빌드에 속하는 모든 프로젝트의 빌드 스크립트를 실행한다. 이를 통해 프로젝트 객체를 구성한다.
+
+3. Execution(실행)
+
+구성 단계에서 생성하고 설정된 태스크 중에 실행할 것을 결정한다. 이 때 gradle 명령행에 인자로 지정한 태스크 이름과 현재 디렉토리를 기반으로 태스크를 결정하여 선택된 것들을 실행한다.
+
+
 
 ### 프로젝트 설정 방법
-- build.gradle : 빌드에 대한 모든 기능을 정의, 환경 설정, 빌드 방법, 라이브러리 정보를 기술하여 프로젝트의 관리 환경울 구성
+- `build.gradle` : 빌드에 대한 모든 기능을 정의, 환경 설정, 빌드 방법, 라이브러리 정보를 기술하여 프로젝트의 관리 환경을 구성
 
-- setting.gradle : 프로젝트 구성을 할 때 작성하는 파일. 프로젝트간의 의존성 및 멀티 프로젝트를 구성할 때 사용
+- `setting.gradle` : 프로젝트 구성을 할 때 작성하는 파일. 프로젝트간의 의존성 및 멀티 프로젝트를 구성할 때 사용
 
 
-#### Groovy?
-Groovy는 JVM에서 실행되는 스크립트 언어이다. JVM에서 동작하지만 소스코드를 컴파일할 필요 없다. Java와 호환되며, Java class file들을 Groovy class로 사용 가능하다.
-Java 문법과 유사하여 빌드 처리를 관리할 수 있다.
-​
+#### setting.gradle
+
+gradle에는 빌드 파일 말고도 설정 파일도 있다. 설정 파일은 명명규칙에 따라 Gradle이 자동 인식한다. 기본 파일명은 `settings.gradle`이다.
+
+설정 파일은 초기화 단계에서 실행된다. 멀티 프로젝트는 무조건 최상위 프로젝트에 `settings.gradle`이 있어야 한다. 어느 프로젝트가 멀티 프로젝트 빌드에 속하는지를 여기서 정한다. 단일 프로젝트 빌드에서는 설정 파일이 없어도 된다.
+
+- 단일 프로젝트에서의 `settings.gradle`
+
+```gradle
+println 'This is executed during the initialization phase.'
+```
+
+- `build.gradle`
+
+```gradle
+println 'This is executed during the configuration phase.'
+ 
+task configured {
+    println 'This is also executed during the configuration phase.'
+}
+ 
+task test << {
+    println 'This is executed during the execution phase.'
+}
+```
+
+실행하면
+```
+> gradle test
+This is executed during the initialization phase.
+This is executed during the configuration phase.
+This is also executed during the configuration phase.
+:test
+This is executed during the execution phase.
+
+BUILD SUCCESSFUL
+```
+
+
+
 ### Gradle의 장점
  
 #### (1) 간결한 스크립트
@@ -221,8 +257,11 @@ XML은 여는 태그와 닫는 태그를 넣어야 하기에 복잡한 빌드 �
  
 #### (2) 빌드 속도
 프로젝트 규모가 커지게 되면 빌드 속도 차이가 개발 생산성에 큰 영향을 미치게 된다.
-Gradle은 캐싱(caching)을 하기 때문에 이전 빌드 도구보다 빌드 속도가 빠르다.
- 
+
+Gradle은 캐싱(caching)을 하기 때문에 이전 빌드 도구들보다 빌드 속도가 빠르다. 만약 두개 이상의 빌드가 돌아가고, 하나의 빌드에서 사용되는 파일들이 다른 빌드에 사용된다면 Gradle은 빌드 캐시를 이용해 이전 빌드의 결과물을 다른 빌드에서 사용할 수 있다.
+
+빌드 속도가 빠른 또 다른 이유는 점진적 빌드를 하기 때문인데, 이는 이미 빌드된 파일들을 모두 다시 빌드하는 것이 아니라 바뀐 파일들에 대해서만 빌드하는 것을 뜻한다.
+
 ※ 하단 링크 페이지에 빌드 캐시(Build cache)를 이용할 경우 Gradle이 Maven의 빌드 속도가 최대 100배까지 벌어질 수 있다고 적혀 있다.
 [Gradle 공식페이지 - Gradle vs Maven Comparison](https://gradle.org/maven-vs-gradle/)
 
@@ -237,6 +276,19 @@ Gradle의 멀티 프로젝트 빌드 기능을 이용하면 이런 번거로움�
 ## Gradle vs Maven
 ---
 
+Build라는 동적인 요소를 XML로 정의하기에는 어려운 부분이 많다.
+설정 내용이 길어지고 가독성 떨어짐
+의존관계가 복잡한 프로젝트 설정하기에는 부적절
+상속구조를 이용한 멀티 모듈 구현
+특정 설정을 소수의 모듈에서 공유하기 위해서는 부모 프로젝트를 생성하여 상속하게 해야함 (상속의 단점 생김)
+Gradle은 그루비를 사용하기 때문에, 동적인 빌드는 Groovy 스크립트로 플러그인을 호출하거나 직접 코드를 짜면 된다.
+Configuration Injection 방식을 사용해서 공통 모듈을 상속해서 사용하는 단점을 커버했다.
+설정 주입시 프로젝트의 조건을 체크할 수 있어서 프로젝트별로 주입되는 설정을 다르게 할 수 있다.
+Gradle은 메이븐보다 최대 100배 빠르다.
+
+
+
+---
 
 1. 스크립트 길이와 가독성 면에서 gradle이 우세하다.
 
@@ -286,6 +338,22 @@ Maven은 멀티 프로젝트에서 특정 설정을 다른 모듈에서 사용�
 산업 표준 및 커뮤니티 지원: Gradle과 Maven은 모두 널리 사용되는 산업 표준 빌드 도구이며, 각각의 커뮤니티와 생태계가 형성되어 있습니다. 서버 개발자로서는 이러한 도구에 대한 이해와 숙련이 필요하며, 온라인 커뮤니티에서의 지원을 받을 수 있습니다.
 
 
+## 빌드 툴의 역사
+1세대 Make
+빌드 개념을 확립
+Unix 계열 OS에서 사용
+2세대 Ant
+범용성을 높임(크로스 플랫폼 대응)
+Make를 java에 적용하려다보니 문제, 보완하기 위해 탄생
+Java + XML 도입
+3세대 Maven
+작성 효율을 높임
+빌드 생명주기와 프로젝트 객체모델(POM)개념을 도입 → Ant의 문제점인 장황한 빌드스크립트 문제를 해결
+4세대 Gradle
+스크립트 언어로 유연성을 증대
+Maven보다 빠름
+기존 Maven, Ivy 등 다른 빌드도구와 호환 가능
+
 ## : Reference
 ---
 - [지수의 개발 기록장 - Maven,Gradle](https://jisooo.tistory.com/entry/Spring-%EB%B9%8C%EB%93%9C-%EA%B4%80%EB%A6%AC-%EB%8F%84%EA%B5%AC-Maven%EA%B3%BC-Gradle-%EB%B9%84%EA%B5%90%ED%95%98%EA%B8%B0)
@@ -293,3 +361,5 @@ Maven은 멀티 프로젝트에서 특정 설정을 다른 모듈에서 사용�
 - [smlee - Maven과 Gradle의 개념 및 비교](https://velog.io/@leesomyoung/Maven%EA%B3%BC-Gradle%EC%9D%98-%EC%B0%A8%EC%9D%B4-%EB%B0%8F-%EB%B9%84%EA%B5%90)
 - [HyoJun Blog - Maven과 Gradle의 차이](https://hyojun123.github.io/2019/04/18/gradleAndMaven/)
 - [coco3o - 메이븐(Maven)과 그래들(Gradle)의 개념 및 비교](https://dev-coco.tistory.com/65)
+- [조세영의 Kotlin World - Gradle이란 무엇인가?](https://kotlinworld.com/311)
+- [권남 - Gradle Build Lifecycle](https://kwonnam.pe.kr/wiki/gradle/buildlifecycle)
