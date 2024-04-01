@@ -1,5 +1,5 @@
 ---
-title: Gradle과 Maven(작성중)
+title: Gradle과 Maven
 date: 2024-02-27 20:00:22 +09:00
 categories:
   - 언어
