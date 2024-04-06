@@ -101,6 +101,11 @@ function getData() {
 
 ### jquery ajax
 
+Jquery를 통해 Ajax를 사용하면 코드가 훨씬 직관적이고 간단해진다.
+
+또한 Ajax만을 사용하면 브라우저에 따라 각기 다른 코드를 작성해야 하는 경우가 있는데, Jquery를 사용하면 동일한 코드로 호환성을 보장할 수 있다.
+
+
 jquery ajax의 기본적인 문법
 
 - **url** : 요청 url을 의미
@@ -147,6 +152,33 @@ $.ajax({
     }
 });
 ```
+
+## Axios 란?
+---
+
+- **Promise based HTTP client for the browser and node.js**
+- node.js와 브라우저를 위한 **HTTP 통신 라이브러리**
+- 비동기로 HTTP 통신을 가능하게 해주며 return을 promise 객체로 해주기 때문에 response 데이터를 다루기도 쉽다.
+
+```javascript
+axios({
+  method: 'get',
+  url: 'http://localhost:8000/api/v1/polls/',
+	baseURL: 
+	headers: 
+  data: {}
+	params: 
+});
+```
+
+- **method** : 요청방식. (get이 디폴트)
+- **url** : 서버 주소
+- baseURL : url을 상대경로로 쓸대 url 맨 앞에 붙는 주소.
+    - 예를 들어, url이 /post 이고 baseURL이 https://some-domain.com/api/ 이면,https://some-domain.com/api/post로 요청 가게 된다.
+- **headers** : 요청 헤더
+- **data** : 요청 방식이 'PUT', 'POST', 'PATCH' 해당하는 경우 body에 보내는 데이터
+- **params** : URL 파라미터 ( ?key=value 로 요청하는 url get방식을 객체로 표현한 것)
+
 
 
 ## : Reference
