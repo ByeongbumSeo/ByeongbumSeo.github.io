@@ -180,6 +180,117 @@ axios({
 - **params** : URL 파라미터 ( ?key=value 로 요청하는 url get방식을 객체로 표현한 것)
 
 
+**axios를 사용한 ajax 요청 예시**
+
+```javascript
+const requestURL = "http://localhost:8000/api/v1/polls/";
+
+// 1
+axios({
+    method: "get", // 통신 방식
+    url: requestURL, // 서버
+}).then(function (response) {
+    console.log(response.data);
+});
+
+
+// 2
+axios
+    .get(requestURL)
+    .then(function (response) {
+        // 성공했을 때
+        console.log(response);
+    })
+    .catch(function (error) {
+        // 에러가 났을 때
+        console.log(error);
+    })
+    .finally(function () {
+        // 항상 실행되는 함수
+    });
+
+// 3 
+// async/await 를 쓰고 싶다면 async 함수/메소드를 만듭니다.
+async function getData() {
+    try {
+        const response = await axios.get(requestURL);
+        console.log(response);
+    } catch (error) {
+        console.error(error);
+    }
+}
+```
+
+
+## fetch
+---
+
+fetch는 **ES6부터 JavaScript의 내장 라이브러리**로 들어왔다.
+
+promise기반으로 만들어졌기에 Axios와 마찬가지로 데이터를 다루는데 어렵지 않으며, 내장 라이브러리라는 장점으로 인해 상당히 편리하다.
+
+**fetch 기본적인 문법**
+
+```javascript
+fetch("url", option)
+	.then(res => res.text())
+	.then(text => console.log(text));
+```
+
+- fetch에는 기본적으로 첫번째 인자에 요청할 url이 들어간다.
+- 기본적으로 http 메소드 중 `GET`으로 동작한다.
+- fetch를 통해 ajax를 호출 시 해당 주소에 요청을 보낸 다음, **응답 객체(Promise object Response)를 받는다.**
+- 첫번째 then에서 그 응답을 받게 되고, `res.text()` 메서드로 파싱한 text값을 리턴한다.
+- 그 다음 then에서 리턴받은 text 값을 받고, 원하는 처리를 할 수 있게 된다.
+
+
+**fetch를 사용한 요청 예시**
+
+
+```javascript
+const requestURL = 'http://localhost:8000/api/v1/polls/';
+
+fetch(requestURL)
+	.then((response) => response.json())
+	.then((data) => console.log(data))
+
+```
+
+응답(response) 객체는 `json()` 메서드를 제공하고, 이 메서드를 호출하면 응답(response) 객체로부터 **JSON 형태의 데이터를 자바스크립트 객체**로 변환하여 얻을 수 있음.
+
+
+
+## Axios vs fetch
+
+**장점**
+
+- response timeout 처리 방법이 존재 (fetch에는 존재하지 않는 기능)
+- promise 기반으로 데이터를 다루기가 쉬움
+- **크로스 브라우징에 신경을 많이 썼기에 브라우저 호환성이 뛰어나다.**
+- XSRF 보호를 해줌
+- 자동으로 JSON 데이터 형식으로 변환 해줌
+
+**단점**
+
+- 별도 모듈 설치가 필요
+
+### fetch
+
+**장점**
+
+- 내장 라이브러리이기에 별도의 import를 해줄 필요가 없다.
+- **promise 기반으로 다루기가 쉽다.**
+- **내장 라이브러리이기에 사용하는 프레임워크가 안정적이지 않을 때 사용하기 좋다.**
+
+**단점**
+
+- internet explorer의 경우에는 **fetch를 지원하지 않는 버전도 존재**한다. (브라우저 호환성이 상대적으로 떨어진다.)
+- **기능이 부족하다.**
+- .json() 메서드를 사용해 변환해야 함
+
+따라서, **간단하게 사용할때는 fetch**를 쓰고, 이외의 **확장성을 염두해봤을 땐 axios**를 쓰면 좋다고 보면 된다.
+
+
 
 ## : Reference
 ---
