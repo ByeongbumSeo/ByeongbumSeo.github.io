@@ -261,7 +261,7 @@ fetch(requestURL)
 
 
 ## Axios vs fetch
-
+---
 **장점**
 
 - response timeout 처리 방법이 존재 (fetch에는 존재하지 않는 기능)
@@ -290,6 +290,35 @@ fetch(requestURL)
 
 따라서, **간단하게 사용할때는 fetch**를 쓰고, 이외의 **확장성을 염두해봤을 땐 axios**를 쓰면 좋다고 보면 된다.
 
+
+
+## RESTful API란?
+---
+
+![RESTful API](/assets/img/posts/2024-04-08-22-03-14.png)
+
+REST API 에서 REST는 **Representational State Transfer** 의 약자로 **소프트웨어 프로그램 아키텍처의 한 형식이다.**
+
+즉, 자원을 이름(자원의 표현)으로 구분하여 해당 자원의 상태(정보)를 주고 받는 모든 것을 의미한다.
+
+### REST 구성 요소
+
+#### 자원(Resource): URI
+
+- 모든 **자원에 고유한 ID가 존재**하고, 이 자원은 Server에 존재한다.
+- 자원을 구별하는 **ID는 ‘/groups/:group_id’와 같은 HTTP URI** 다.
+- Client는 URI를 이용해서 자원을 지정하고 해당 자원의 상태(정보)에 대한 조작을 Server에 요청한다.
+
+#### 행위(Verb): HTTP Method
+
+- **HTTP 프로토콜의 Method를 사용**한다.
+- HTTP 프로토콜은 **GET, POST, PUT, DELETE** 와 같은 메서드를 제공한다.
+
+#### 표현(Representation of Resource)
+
+- Client가 **자원의 상태(정보)에 대한 조작을 요청**하면 Server는 이에 **적절한 응답(Representation)**을 보낸다.
+- REST에서 하나의 자원은 **JSON, XML, TEXT, RSS 등 여러 형태의 Representation**으로 나타내어 질 수 있다.
+- **JSON 혹은 XML**를 통해 데이터를 주고 받는 것이 일반적이다.
 
 
 ## : Reference
