@@ -1,5 +1,5 @@
 ---
-title: Ajax, RESTful API, Axios (작성중)
+title: Ajax, Axios, fetch, RESTful API (작성중)
 date: 2024-04-04 14:38:22 +09:00
 categories:
   - 언어
@@ -297,6 +297,14 @@ fetch(requestURL)
 
 ![RESTful API](/assets/img/posts/2024-04-08-22-03-14.png)
 
+### API
+- API(Application Programming Interface)란
+    - 데이터와 기능의 집합을 제공하여 컴퓨터 프로그램 간 상호작용을 촉진하며, 서로 정보를 교환 가능하도록 하는 것
+- **REST API**의 정의
+    - REST 기반으로 서비스 API를 구현한 것
+
+
+### REST
 REST API 에서 REST는 **Representational State Transfer** 의 약자로 **소프트웨어 프로그램 아키텍처의 한 형식이다.**
 
 즉, 자원을 이름(자원의 표현)으로 구분하여 해당 자원의 상태(정보)를 주고 받는 모든 것을 의미한다.
@@ -319,6 +327,60 @@ REST API 에서 REST는 **Representational State Transfer** 의 약자로 **소�
 - Client가 **자원의 상태(정보)에 대한 조작을 요청**하면 Server는 이에 **적절한 응답(Representation)**을 보낸다.
 - REST에서 하나의 자원은 **JSON, XML, TEXT, RSS 등 여러 형태의 Representation**으로 나타내어 질 수 있다.
 - **JSON 혹은 XML**를 통해 데이터를 주고 받는 것이 일반적이다.
+
+
+
+### REST API 설계 규칙
+
+REST에서 가장 중요하게 여기는 기본적인 규칙은 아래 2가지다.
+- **URI**는 정보의 자원을 표현해야 한다
+- 자원에 대한 행위는 **HTTP Method (GET, POST, PUT, DELETE 등)**으로 표현한다
+
+
+**세부 규칙**
+
+1. 슬래시 구분자 ( / )는 계층 관계를 나타내는데 사용한다.
+
+ex ) `http://restapi.example.com/houses/apartments`
+
+2. URI 마지막 문자로 슬래시 ( / )를 포함하지 않는다.
+
+- 즉 URI에 포함되는 모든 글자는 리소스의 유일한 식별자로 사용되어야 하며 URI가 다르다는 것은 리소스가 다르다는 것
+- 역으로 리소스가 다르면 URI도 달라져야 한다.
+- ex) `http://restapi.example.com/houses/apartments/ (x)`
+
+3. 하이픈 ( - )은 URI 가독성을 높이는데 사용한다.
+
+4. 밑줄 ( _ )은 URI에 사용하지 않는다.
+
+5. URI 경로에는 소문자가 적합하다.
+
+- URI 경로에 대문자 사용은 피하도록 한다.
+
+6. 파일확장자는 URI에 포함하지 않는다.
+
+- REST API 에서는 메시지 바디 내용의 포맷을 나타내기 위한 파일 확장자를 URI 안에 포함시키지 않는다.
+- 대신 Accept Header 를 사용한다.
+- Ex) `http://restapi.example.com/members/soccer/345/photo.jpg (X)
+GET / members/soccer/345/photo HTTP/1.1 Host: restapi.example.com Accept: image/jpg (O)`
+
+7. 리소스 간에 연관 관계가 있는 경우
+
+- /리소스명/리소스ID/관계가 있는 다른 리소스 명
+- ex) `GET: /users/{userid}/orders` 
+    (일반적으로 소유의 관계를 표현할 때 사용)
+
+**REST API 설계 예시**
+![REST API 설계 예시](/assets/img/posts/2024-04-10-23-57-36.png)
+
+### RESTful 이란
+
+‘REST API’ 를 제공하는 웹 서비스를 ‘RESTful’ 하다고 할 수 있으며, REST 원리를 따르는 시스템이 곧 RESTful 한 것입니다.
+
+**RESTful의 목적**
+
+- 이해하기 쉽고 사용하기 쉬운 REST API를 만드는 것
+- 일관적인 컨벤션을 통한 API의 이해도 및 호환성을 높이는 것
 
 
 ## : Reference
