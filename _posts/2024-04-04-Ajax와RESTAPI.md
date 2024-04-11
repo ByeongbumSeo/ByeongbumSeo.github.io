@@ -40,7 +40,7 @@ JavaScript에서 서버와 통신하기 위해 Ajax 방식을 사용한다.
 즉, **자바스크립트를 통해서 서버에 데이터를 비동기 방식으로 요청하는 것**
 
 ### 비동기(async)방식이란?
-![](/assets/img/posts/2024-04-05-23-44-20.png)
+![비동기](/assets/img/posts/2024-04-05-23-44-20.png)
 
 비동기 방식은 웹페이지를 리로드하지 않고 데이터를 불러오는 방식이다.
 
@@ -297,6 +297,12 @@ fetch(requestURL)
 
 ![RESTful API](/assets/img/posts/2024-04-08-22-03-14.png)
 
+**RESTful의 목적**
+
+- 이해하기 쉽고 사용하기 쉬운 REST API를 만드는 것
+- 일관적인 컨벤션을 통한 API의 이해도 및 호환성을 높이는 것
+
+
 ### API
 - API(Application Programming Interface)란
     - 데이터와 기능의 집합을 제공하여 컴퓨터 프로그램 간 상호작용을 촉진하며, 서로 정보를 교환 가능하도록 하는 것
@@ -339,33 +345,22 @@ REST에서 가장 중요하게 여기는 기본적인 규칙은 아래 2가지�
 
 **세부 규칙**
 
-1. 슬래시 구분자 ( / )는 계층 관계를 나타내는데 사용한다.
-
-ex ) `http://restapi.example.com/houses/apartments`
-
+1. 슬래시 구분자 ( / )는 계층 관계를 나타내는데 사용한다.  
+    ex )`http://restapi.example.com/houses/apartments`
 2. URI 마지막 문자로 슬래시 ( / )를 포함하지 않는다.
-
 - 즉 URI에 포함되는 모든 글자는 리소스의 유일한 식별자로 사용되어야 하며 URI가 다르다는 것은 리소스가 다르다는 것
 - 역으로 리소스가 다르면 URI도 달라져야 한다.
-- ex) `http://restapi.example.com/houses/apartments/ (x)`
-
+- ex )`http://restapi.example.com/houses/apartments/ (x)`
 3. 하이픈 ( - )은 URI 가독성을 높이는데 사용한다.
-
 4. 밑줄 ( _ )은 URI에 사용하지 않는다.
-
 5. URI 경로에는 소문자가 적합하다.
-
 - URI 경로에 대문자 사용은 피하도록 한다.
-
 6. 파일확장자는 URI에 포함하지 않는다.
-
 - REST API 에서는 메시지 바디 내용의 포맷을 나타내기 위한 파일 확장자를 URI 안에 포함시키지 않는다.
 - 대신 Accept Header 를 사용한다.
 - Ex) `http://restapi.example.com/members/soccer/345/photo.jpg (X)
 GET / members/soccer/345/photo HTTP/1.1 Host: restapi.example.com Accept: image/jpg (O)`
-
 7. 리소스 간에 연관 관계가 있는 경우
-
 - /리소스명/리소스ID/관계가 있는 다른 리소스 명
 - ex) `GET: /users/{userid}/orders` 
     (일반적으로 소유의 관계를 표현할 때 사용)
@@ -373,14 +368,6 @@ GET / members/soccer/345/photo HTTP/1.1 Host: restapi.example.com Accept: image/
 **REST API 설계 예시**
 ![REST API 설계 예시](/assets/img/posts/2024-04-10-23-57-36.png)
 
-### RESTful 이란
-
-‘REST API’ 를 제공하는 웹 서비스를 ‘RESTful’ 하다고 할 수 있으며, REST 원리를 따르는 시스템이 곧 RESTful 한 것입니다.
-
-**RESTful의 목적**
-
-- 이해하기 쉽고 사용하기 쉬운 REST API를 만드는 것
-- 일관적인 컨벤션을 통한 API의 이해도 및 호환성을 높이는 것
 
 
 ## : Reference
@@ -388,4 +375,5 @@ GET / members/soccer/345/photo HTTP/1.1 Host: restapi.example.com Accept: image/
 - [https://velog.io/@surim014/AJAX란-무엇인가](https://velog.io/@surim014/AJAX%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80)
 - [https://inpa.tistory.com/entry/AXIOS-📚-설치-사용](https://inpa.tistory.com/entry/AXIOS-%F0%9F%93%9A-%EC%84%A4%EC%B9%98-%EC%82%AC%EC%9A%A9)
 - [https://velog.io/@kysung95/개발상식-Ajax와-Axios-그리고-fetch](https://velog.io/@kysung95/%EA%B0%9C%EB%B0%9C%EC%83%81%EC%8B%9D-Ajax%EC%99%80-Axios-%EA%B7%B8%EB%A6%AC%EA%B3%A0-fetch)
-- https://gmlwjd9405.github.io/2018/09/21/rest-and-restful.html
+- [REST란? REST API란? RESTful이란?](https://gmlwjd9405.github.io/2018/09/21/rest-and-restful.html)
+- [RESTful API란 무엇인가요?](https://aws.amazon.com/ko/what-is/restful-api/)
