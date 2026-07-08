@@ -1,205 +1,341 @@
 ---
-title: "추상클래스와 인터페이스(조금 더 정리 필요)"
+title: "추상 클래스와 인터페이스"
 slug: "abstract-class-interface"
-description: "Java 추상 클래스와 인터페이스의 차이를 정리한다."
+description: "Java에서 추상 클래스와 인터페이스를 언제 어떻게 구분해서 쓰는지 정리한다."
 kind: "tech"
 publishedAt: "2024-01-31"
+updatedAt: "2026-07-08"
 draft: false
 deprecated: false
-outdated:
-  since: "2026-07-07"
-  reason: "기존 제목에 추가 정리 필요 표시가 있어 향후 보강 대상입니다."
+outdated: false
 tags: ["java", "oop"]
 relatedPosts: ["strategy-pattern"]
-references: []
+references:
+  - title: "Oracle Java Tutorial - Abstract Methods and Classes"
+    url: "https://docs.oracle.com/javase/tutorial/java/IandI/abstract.html"
+  - title: "Java Language Specification 21 - Classes"
+    url: "https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html"
+  - title: "Java Language Specification 21 - Interfaces"
+    url: "https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html"
+  - title: "JDK 21 API - AbstractMap"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/AbstractMap.html"
+  - title: "JDK 21 API - Map"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html"
+  - title: "JDK 21 API - Runnable"
+    url: "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Runnable.html"
 ---
 
-## 공부하게 된 배경
-디자인 패턴 및 클린 코드를 공부할 때 가장 많이 나오는 개념이 바로 '추상화'가 아닐까 싶다.
+## 한 줄 정리
 
-따라서 추상화의 핵심인 추상클래스와 인터페이스의 개념을 확실히 하고자 이 글을 포스팅한다.
+추상 클래스와 인터페이스는 둘 다 "아직 완성되지 않은 타입"을 표현할 수 있다.
 
+하지만 실무에서의 선택 기준은 다르다.
 
-## 다루는 내용
-- 추상클래스
-- 인터페이스
-- 추상메소드
+- **추상 클래스**는 같은 계열의 클래스들이 공유할 상태와 기본 구현이 있을 때 쓴다.
+- **인터페이스**는 어떤 객체가 제공해야 하는 동작의 약속을 타입으로 표현할 때 쓴다.
 
+예를 들어 결제 시스템에서 `PaymentProcessor`는 인터페이스로 두는 편이 자연스럽다. 카드 결제, 계좌 이체, 간편 결제는 서로 같은 부모 클래스를 가져야 하는 관계라기보다 "결제할 수 있다"는 동작을 공유하는 구현체들이기 때문이다.
 
-## 추상클래스와 인터페이스
----
+반대로 여러 결제 구현체가 공통으로 쓰는 `merchantId`, `validateAmount()`, `recordHistory()` 같은 상태와 흐름이 있다면 그 부분은 추상 클래스로 뽑을 수 있다.
 
-**추상 클래스 vs 인터페이스 정리 표**
+## Java 기준 사실 정리
 
-| 항목               | 추상 클래스                          | 인터페이스                             |
-|--------------------|------------------------------------|----------------------------------------|
-| 사용 키워드       | abstract                           | interface                              |
-| 사용 가능 변수    | 제한 없음                           | static final (상수)                    |
-| 사용 가능 접근 제어자 | 제한 없음 (public, private, protected, default) | public                                 |
-| 사용 가능 메소드  | 제한 없음                           | abstract method, default method, static method, private method |
-| 상속 키워드       | extends                            | implements                             |
-| 다중 상속 가능 여부 | 불가능                             | 가능 (클래스에 다중 구현, 인터페이스 끼리 다중 상속)     |
-| 존재 목적 | 상속 받아서 기능 확장 목적                             | 구현 객체의 동일한 실행 기능 보장 목적     |
+Oracle Java Tutorial은 추상 클래스를 `abstract`로 선언된 클래스라고 설명한다. 추상 클래스는 직접 인스턴스화할 수 없고, 하위 클래스로 확장해서 사용한다. 추상 메서드가 하나라도 있으면 클래스도 `abstract`여야 한다.
 
+```java
+abstract class Payment {
+    abstract void pay(long amount);
+}
 
-**공통점**
+// new Payment(); // 컴파일 불가
+```
 
-1. 추상 메소드를 가지고 있어야 한다.
-2. 인스턴스화 할 수 없다 (new 생성자 사용 X)
-3. 인터페이스 혹은 추상 클래스를 상속받아 구현한 구현체의 인스턴스를 사용해야 한다.
-4. 인터페이스와 추상클래스를 구현, 상속한 클래스는 추상 메소드를 반드시 구현하여야 한다. 
+인터페이스의 추상 메서드는 기본적으로 구현체가 반드시 구현해야 하는 동작이다. Java 8 이후 인터페이스에도 `default` 메서드와 `static` 메서드를 둘 수 있고, Java 9 이후에는 `private` 메서드도 둘 수 있다. 그래서 "인터페이스는 무조건 구현이 없는 껍데기"라고 외우면 현재 Java 기준으로는 틀리다.
 
+```java
+interface PaymentProcessor {
+    void pay(long amount);
 
-이 두 가지는 하는 일은 비슷하지만, 개념의 차이는 명확하다.
-
-> 추상 클래스와 인터페이스는  
-> 상속받는 클래스 혹은 구현하는 인터페이스 안에 있는 **추상 메소드를 구현하도록 강제한다.**
-
-그렇다면 추상 클래스 안에 추상 메소드를 여러 개 두거나 혹은 전부 추상 메소드만 두면 될텐데,
-왜 인터페이스가 존재하는 것일까?
-
-## 이 두가지의 존재 목적을 알아보자.
----
-> `추상 클래스`는 그 추상 클래스를 상속받아서 기능을 이용하고, 확장시키는 데 있다.  
-> 반면, `인터페이스`는 함수의 껍데기만 있는데, 그 이유는 그 함수의 구현을 강제하기 위해서이다.  
-> (인터페이스에서 구현을 강제하는 이유는, 구현 객체의 같은 동작을 보장하기 위해서이다.)
-
-이렇게 애매하지만 명확하게 다른 존재 이유가 있다. 
-
-하지만 서로 상호 보완적인 측면도 존재하는데, 이는 **java가 다중 상속을 지원하지 않는 부분**에서 나타난다.
-
-
-## 다중 상속
----
-
-- 다중 상속은 무엇이고, 왜 지원하지 않을까?
-    
-    > 다중 상속 : 여러 개의 슈퍼 클래스를 두는 것
-    > 
-    
-    ```java
-    class MyVehicle extends car, plane {
-    	@Override
-    	public void goTo(){
-    		super.drive();
-    	}
+    default boolean supportsInstallment() {
+        return false;
     }
-    ```
-    
-    위와 같은 코드에서 car, plane 클래스 모두 drive() 라는 메소드를 가지고 있다면, 어떤 메소드가 실행될까?
-    
-    이것이 바로 다중 상속의 모호성이다. 따라서 자바는 과감하게 다중 상속을 못하도록 해버렸다.
-    
-
-이와는 다르게 인터페이스는 아래와 같이 여러 개의 인터페이스를 구현할 수 있다.
-
-```java
-class car implements vehicle,engine{
-	@Override
-	public void drive(){
-		@doSomething
-	}
 }
 ```
 
-마치 여러 개를 상속받는 것처럼 보인다. 그래서 추상 클래스의 상속과 헷갈린다.
+다만 인터페이스의 필드는 여전히 인스턴스 상태가 아니다. 인터페이스에 선언한 필드는 암묵적으로 `public static final` 상수다. 구현체마다 달라지는 상태를 인터페이스가 직접 들고 있을 수는 없다.
 
-이렇게 외관상 헷갈리게 생긴 것 말고도, 둘 다 추상 메소드를 가지고 있다는 점 때문에 인터페이스가 다중 상속의 문제점을 해결하기 위해 존재한다는 오해를 사기도 한다.
+## 핵심 차이
 
-이 오해를 풀기 위해서는 다시 한번 두 개념의 존재 이유를 되새겨 볼 필요가 있다.
+| 기준 | 추상 클래스 | 인터페이스 |
+| --- | --- | --- |
+| 선언 | `abstract class` | `interface` |
+| 사용 | `extends` | `implements` |
+| 다중 사용 | 클래스는 하나만 상속 가능 | 여러 인터페이스 구현 가능 |
+| 인스턴스 상태 | 인스턴스 필드 가능 | 인스턴스 필드 불가 |
+| 생성자 | 가질 수 있음 | 가질 수 없음 |
+| 구현 코드 | 일반 메서드, 추상 메서드 모두 가능 | 추상 메서드, default/static/private 메서드 가능 |
+| 접근 제어 | `public`, `protected`, package-private, `private` 등 클래스 규칙 사용 | 일반적인 인터페이스 메서드는 기본적으로 `public` 성격 |
+| 실무 의미 | 같은 계열의 공통 골격 제공 | 구현체가 지켜야 할 동작 계약 제공 |
 
-**상속은** 슈퍼클래스의 기능을 이용하거나 확장하기 위해서 사용되고, 다중 상속의 모호성 때문에 **하나만 상속받을 수 있다.**
+## 추상 클래스가 어울리는 경우
 
-반면 인터페이스는 해당 인터페이스를 구현한 객체들에 대해서 동일한 동작을 약속하기 위해 존재한다.
+추상 클래스는 "같은 종류"의 객체들이 공통 상태와 공통 로직을 공유할 때 적합하다.
 
-### 만약 도형을 그리는 프로그램을 만든다고 치자.
-
-삼각형을 만들 때도 그려야하고, 사각형을 만들 때도 그려야하니 draw() 메소드가 필요하겠지만, 도형종류가 다르니 그리는 방식도 다를 것이다.
-
-하지만 도형이 무슨 모양인지 결정이 안되어있는 상황이니 draw() 메소드를 결정할 수 없다.
-
-이러한 상황이 추상화의 대표적인 예라고 생각할 수 있다.
-
-추상메소드로 선언만 해놓고 안의 내용은 상황에 맞게 자식 클래스에서 알아서 다시 구현해 쓰라고 선언만 해놓고, 구현을 기다리는 방식(오버라이드로 재정의해서 사용)이 바로 추상 클래스와 인터페이스다.
-
-여기서 추상메소드만 선언할꺼면 인터페이스를, 다른 일반 메소드나 필드도 필요하면 추상클래스를 쓰면 된다.
-
-어렵게 생각하지말고, 인터페이스는 한눈에 보면 다 빈껍데기 뿐이기 때문에 어떤 것을 구현해야되는지 한눈에 몽땅 들어오므로 쓰는 빈도가 높고, 추상클래스는 필요에 의해서 일반 메소드와 더불어서 추상화 기능을 가미할 때 쓴다는 정도로만 이해하면 될듯 싶다.
-
-### 추상클래스와 인터페이스의 상속 방식
-
-우선 둘다 같은 추상메소드를 넘겨받아 안의 내용을 채우는 것이므로 당연히 오버라이딩 해야한다.
-
-하지만 abstract class는 상속처럼 extends를 쓴다.
+예를 들어 알림 발송 기능을 만든다고 해보자. 이메일, SMS, 푸시 알림은 모두 발송 전 검증, 발송 이력 기록, 실패 처리 같은 공통 흐름을 가질 수 있다. 이때 공통 흐름은 부모 클래스가 잡고, 실제 발송 방식만 하위 클래스에 맡길 수 있다.
 
 ```java
-class Triangle extends Shape{
-	void draw(){ // 일반 메소드 형태로 구현
-		System.out.println("삼각형을 그린다.");
-	}
+abstract class NotificationSender {
+    private final NotificationHistoryRepository historyRepository;
+
+    protected NotificationSender(NotificationHistoryRepository historyRepository) {
+        this.historyRepository = historyRepository;
+    }
+
+    public final void send(NotificationMessage message) {
+        validate(message);
+        doSend(message);
+        historyRepository.save(message);
+    }
+
+    protected void validate(NotificationMessage message) {
+        if (message.recipient() == null || message.recipient().isBlank()) {
+            throw new IllegalArgumentException("recipient is required");
+        }
+    }
+
+    protected abstract void doSend(NotificationMessage message);
 }
 ```
 
-interface는 implements로 상속을 받는다.
-
 ```java
-class Triangle implements Shape{
-	public void draw(){ // 일반 메소드 형태로 전부 구현
-		System.out.println("삼각형을 그린다.");
-	}
-	public void move(int y){ // 접근 지정자를 완화시켜 public으로 구현해준다.
-		System.out.println("삼각형을 이동시킨다.");
-	}
+class EmailSender extends NotificationSender {
+    EmailSender(NotificationHistoryRepository historyRepository) {
+        super(historyRepository);
+    }
+
+    @Override
+    protected void doSend(NotificationMessage message) {
+        // SMTP, 외부 메일 API 호출 등
+    }
 }
 ```
 
-추상클래스든 인터페이스든 상속 받기로 했으면, 안에 있는 추상메소드는 모두 구현해주어야한다.
+이 예시에서 중요한 점은 `NotificationSender`가 단순히 메서드 이름만 강제하는 것이 아니라는 것이다.
 
-위에서 이야기 했듯이, 추상클래스는 인터페이스와 달리 클래스이므로 extends로 상속하고, 다중상속이 안되지만, 추상클래스가 추상클래스를 상속하는 것은 가능하다.
+- `historyRepository`라는 상태를 가진다.
+- `send()`라는 공통 처리 흐름을 제공한다.
+- `validate()`라는 기본 구현을 제공한다.
+- `doSend()`만 하위 클래스에 위임한다.
 
-이 경우에는 자식클래스도 추상클래스이므로, 상속받았다 할지라도 추상메소드를 꼭 구현할 필요는 없고 다른 추상메소드를 만들어도 상관없다.
+이런 구조는 템플릿 메서드 패턴과도 잘 맞는다. 공통 흐름은 상위 클래스에 두고, 바뀌는 부분만 하위 클래스가 구현한다.
+
+JDK에도 이런 예가 있다. `java.util.AbstractMap`은 `Map` 인터페이스의 골격 구현을 제공한다. JDK 문서는 `AbstractMap`이 `Map` 인터페이스를 구현하는 데 필요한 노력을 줄이기 위한 skeletal implementation이라고 설명한다. `HashMap`, `TreeMap`, `ConcurrentHashMap` 같은 클래스들이 `AbstractMap` 계열의 구현을 활용한다.
+
+## 인터페이스가 어울리는 경우
+
+인터페이스는 "이 객체가 무엇을 할 수 있는가"를 표현할 때 적합하다.
+
+실무 예시로 주문 생성 후 여러 후속 작업을 실행한다고 해보자.
+
+- 쿠폰 사용 처리
+- 포인트 적립
+- 알림 발송
+- 검색 색인 요청
+
+이 작업들은 같은 부모 클래스를 가져야 할 정도로 같은 종류의 객체는 아니다. 하지만 모두 "주문 생성 이벤트를 처리한다"는 동작을 제공할 수 있다.
 
 ```java
-abstract class Triangle extends Shape //추상 클래스가 추상클래스 상속
+interface OrderCreatedHandler {
+    void handle(OrderCreatedEvent event);
+}
 ```
-
-인터페이스는 implements라는 키워드를 사용해서 상속하고, 다중 상속이 가능하다.
 
 ```java
-class Triangle implements **Shape, 인터페이스, 인터페이스 //인터페이스 다중 상속**
+class CouponUseHandler implements OrderCreatedHandler {
+    @Override
+    public void handle(OrderCreatedEvent event) {
+        // 쿠폰 사용 처리
+    }
+}
+
+class PointSaveHandler implements OrderCreatedHandler {
+    @Override
+    public void handle(OrderCreatedEvent event) {
+        // 포인트 적립
+    }
+}
+
+class OrderNotificationHandler implements OrderCreatedHandler {
+    @Override
+    public void handle(OrderCreatedEvent event) {
+        // 알림 발송
+    }
+}
 ```
 
-마지막으로 추상클래스와 인터페이스를 어떤 상황에서 쓰는지 다시 한번 구별하자면,
+서비스는 구체 클래스를 몰라도 된다.
 
-같은 종류나 행동들을 구현하고, 상속에 대한 계층 구조를 명확히 표현할 때 추상클래스를 이용한다.
+```java
+class OrderService {
+    private final List<OrderCreatedHandler> handlers;
 
-추상클래스는 일반 변수들과 일반 메소드들도 쓸 수 있고, 아직 구현하지 않아도될 메소드는 그냥 내버려둘 수 있어 상황에 따라 편리하다.
+    OrderService(List<OrderCreatedHandler> handlers) {
+        this.handlers = handlers;
+    }
 
-인터페이스는 디자인을 구성하는 요소들이 자주 바뀔 때 쓰면 유용하고, 메소드 형태만 서로 공유해서 구현하는 상황일 때 적합하다.
+    public void createOrder(CreateOrderCommand command) {
+        Order order = save(command);
+        OrderCreatedEvent event = OrderCreatedEvent.from(order);
 
-## References
+        for (OrderCreatedHandler handler : handlers) {
+            handler.handle(event);
+        }
+    }
+}
+```
 
-[자바의 추상 클래스와 인터페이스](https://brunch.co.kr/@kd4/6)  
-[자바의 추상클래스(abstract class)와 인터페이스(interface)](http://alecture.blogspot.com/2011/05/abstract-class-interface.html)
+이 구조의 장점은 새 후속 작업이 생겨도 `OrderService`의 핵심 흐름을 크게 건드리지 않아도 된다는 점이다. 새로운 구현체가 `OrderCreatedHandler`를 구현하면 된다.
 
+이런 방식은 Spring을 쓰는 백엔드 코드에서도 자주 나온다. `PaymentClient`, `MessageSender`, `OrderValidator`, `EventHandler` 같은 이름의 인터페이스를 두고, 실제 구현은 `KakaoPayClient`, `NaverPayClient`, `EmailMessageSender`, `SmsMessageSender`처럼 나누는 식이다.
 
+## Java 표준 라이브러리 예시
 
+`Runnable`은 인터페이스의 대표적인 예다. JDK 문서에서 `Runnable`은 값을 반환하지 않는 작업을 표현하며, 함수형 인터페이스라서 람다식이나 메서드 참조의 대상이 될 수 있다고 설명한다.
 
-### 추상 클래스와 인터페이스 상세 설명
+```java
+Runnable job = () -> System.out.println("run background job");
+new Thread(job).start();
+```
 
-클래스는 크게 일반 클래스와 추상 클래스로 나뉜다.
+여기서 중요한 것은 `Thread`가 `Runnable`의 구체 클래스를 몰라도 된다는 점이다. `Thread`는 `run()`이라는 동작만 알면 된다.
 
-**추상클래스는 클래스 내 `추상 메소드` 가 하나 이상 포함되거나 abstract로 정의된 경우**를 말한다.
+`Map`도 인터페이스다. `HashMap`, `TreeMap`, `LinkedHashMap`은 내부 구조가 다르지만 모두 `Map`으로 다룰 수 있다.
 
-> 추상 메소드란 무엇일까?
-    추상메소드란 안이 아직 구현되어 있지 않은 `abstract`로 정의된 메소드를 말한다.
+```java
+Map<String, Integer> scores = new HashMap<>();
+scores.put("kim", 10);
 
-    클래스 안의 메소드 중 단 한개라도 추상메소드가 있다면, 그 클래스 앞에는 반드시 `abstract` 클래스명으로 표기되어야 하며, `abstract`와 `final` 키워드를 동시에 표기할 수 없다. (추상 클래스로 설정)
-    
-    또한, 추상클래스에서는 일반변수들을 가질 수 있고, 생성자를 가질 수 있다.
-    
-    반면 인터페이스는 final을 붙일 수 없고, 인터페이스 변수들은 static이어야만 한다.(일반 변수 불가)
-    그리고 생성자 또한 가질 수 없다.
-    
+Map<String, Integer> sortedScores = new TreeMap<>();
+sortedScores.put("kim", 10);
+```
 
-반면, **인터페이스는 모든 메소드가 추상 메소드인 경우**를 말한다.
+반면 `AbstractMap`은 추상 클래스다. `Map`이라는 동작 계약을 구현하기 위한 공통 골격을 제공한다. 그래서 JDK 안에서도 인터페이스와 추상 클래스는 경쟁 관계가 아니라 함께 쓰인다.
+
+```text
+Map: 무엇을 할 수 있어야 하는가
+AbstractMap: Map 구현체들이 공유할 수 있는 기본 구현
+HashMap: 실제 동작하는 구체 구현
+```
+
+## default 메서드가 있어도 인터페이스와 추상 클래스는 다르다
+
+Java 8 이후 인터페이스에 `default` 메서드가 생기면서 둘의 경계가 흐릿해 보일 수 있다.
+
+예를 들어 `Map` 인터페이스에는 `getOrDefault`, `forEach` 같은 default 메서드가 있다. 기존 `Map` 구현체가 모두 새 메서드를 직접 구현하지 않아도, 인터페이스가 기본 동작을 제공할 수 있게 된 것이다.
+
+```java
+Map<String, Integer> scores = new HashMap<>();
+
+int kimScore = scores.getOrDefault("kim", 0);
+scores.forEach((name, score) -> System.out.println(name + ": " + score));
+```
+
+하지만 default 메서드가 있다고 해서 인터페이스가 추상 클래스를 대체하는 것은 아니다.
+
+인터페이스의 default 메서드는 구현체의 인스턴스 필드에 직접 접근할 수 없다. 반면 추상 클래스는 상태를 가질 수 있고, 그 상태를 사용하는 공통 로직을 제공할 수 있다. 즉 default 메서드는 "인터페이스에 부가 동작을 제공하는 장치"에 가깝고, 추상 클래스는 "공통 상태와 흐름을 가진 부모 타입"에 가깝다.
+
+## 선택 기준
+
+실무에서는 아래 기준으로 고르면 된다.
+
+### 1. 상태와 공통 흐름이 필요하면 추상 클래스
+
+다음 조건이 많을수록 추상 클래스가 어울린다.
+
+- 하위 클래스들이 같은 계열이다.
+- 공통 필드가 필요하다.
+- 생성자를 통해 공통 의존성을 주입받아야 한다.
+- 공통 처리 흐름을 상위 클래스에서 고정하고 싶다.
+- 일부 단계만 하위 클래스가 바꾸게 하고 싶다.
+
+예시는 이런 것들이다.
+
+- `NotificationSender`
+- `AbstractPaymentProcessor`
+- `BaseEntity`
+- `AbstractAuditable`
+- `AbstractMap`
+
+단, `BaseService`, `BaseController`처럼 너무 넓은 추상 클래스는 조심해야 한다. 상속은 결합이 강하다. 공통 코드 몇 줄을 아끼려고 부모 클래스를 만들면 나중에 모든 하위 클래스가 부모의 변경에 묶일 수 있다.
+
+### 2. 동작 계약만 필요하면 인터페이스
+
+다음 조건이 많을수록 인터페이스가 어울린다.
+
+- 구현체들이 같은 계열일 필요는 없다.
+- 호출하는 쪽이 구체 구현을 몰라도 된다.
+- 여러 구현체를 쉽게 바꿔 끼우고 싶다.
+- 테스트에서 fake/mock 구현으로 대체하고 싶다.
+- 한 클래스가 여러 역할을 동시에 표현해야 한다.
+
+예시는 이런 것들이다.
+
+- `PaymentClient`
+- `OrderCreatedHandler`
+- `MessageSender`
+- `Validator<T>`
+- `Repository`
+- `Runnable`
+- `Comparable<T>`
+- `Map<K, V>`
+
+백엔드 개발에서는 인터페이스가 특히 자주 쓰인다. 외부 API, 메시지 발송, 파일 저장소, 결제, 알림처럼 바뀔 가능성이 있는 경계에 인터페이스를 두면 서비스 코드는 구체 구현에 덜 묶인다.
+
+## 흔한 오해
+
+### 인터페이스는 다중 상속을 해결하기 위해 생긴 것일까?
+
+반만 맞는 말이다.
+
+Java 클래스는 한 클래스만 상속할 수 있다. JLS는 `Object`를 제외한 각 클래스가 하나의 기존 클래스를 확장한다고 설명한다. 반면 클래스는 여러 인터페이스를 구현할 수 있다. 그래서 인터페이스가 "여러 타입으로 취급될 수 있게 해준다"는 점은 맞다.
+
+하지만 인터페이스의 핵심은 여러 부모의 구현을 물려받는 것이 아니다. 핵심은 타입이 지켜야 할 동작 계약을 분리하는 것이다.
+
+```java
+class ReportJob implements Runnable, Comparable<ReportJob> {
+    @Override
+    public void run() {
+        // 리포트 생성
+    }
+
+    @Override
+    public int compareTo(ReportJob other) {
+        return 0;
+    }
+}
+```
+
+이 클래스는 `Runnable`이기도 하고 `Comparable`이기도 하다. 하지만 두 인터페이스가 공통 부모 구현을 물려주는 것은 아니다. 각각 "실행 가능하다", "비교 가능하다"는 역할을 부여한다.
+
+### 추상 클래스는 무조건 인터페이스보다 구식일까?
+
+아니다.
+
+추상 클래스는 여전히 필요하다. `AbstractMap`처럼 JDK에서도 적극적으로 쓰인다. 공통 상태와 골격 구현이 필요한 상황에서는 추상 클래스가 더 명확하다.
+
+다만 새 코드를 작성할 때는 먼저 인터페이스로 계약을 분리할 수 있는지 보고, 공통 상태와 흐름이 실제로 필요할 때 추상 클래스를 도입하는 편이 안전하다.
+
+## 마무리
+
+추상 클래스와 인터페이스를 단순히 "메서드 구현이 있느냐 없느냐"로 구분하면 Java 8 이후부터는 설명이 부족하다.
+
+더 실용적인 기준은 이것이다.
+
+```text
+인터페이스: 호출하는 쪽이 기대하는 동작 계약
+추상 클래스: 하위 클래스들이 공유하는 상태와 기본 구현
+```
+
+같은 계열의 객체들이 공통 상태와 처리 흐름을 공유한다면 추상 클래스가 자연스럽다. 서로 다른 객체들이 같은 역할을 수행해야 한다면 인터페이스가 자연스럽다.
+
+상속은 강한 관계다. 그래서 실무에서는 인터페이스로 역할을 먼저 분리하고, 정말 공유할 상태와 흐름이 생겼을 때 추상 클래스를 선택하는 쪽이 유지보수에 유리하다.
