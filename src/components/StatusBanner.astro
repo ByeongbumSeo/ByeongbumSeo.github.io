@@ -1,0 +1,28 @@
+---
+import { formatDate } from "../lib/posts";
+
+interface StatusObject {
+  since: Date;
+  reason: string;
+  replacementSlug?: string;
+}
+
+interface Props {
+  label: "Deprecated" | "Outdated";
+  status: false | StatusObject;
+}
+
+const { label, status } = Astro.props;
+const tone = label === "Deprecated" ? "danger" : "warning";
+---
+
+{
+  status && (
+    <aside class={`status-banner status-banner--${tone}`} aria-label={label}>
+      <strong>{label}</strong>
+      <span>{status.reason}</span>
+      <time datetime={status.since.toISOString()}>{formatDate(status.since)}</time>
+      {status.replacementSlug && <a href={`/posts/${status.replacementSlug}/`}>대체 글 보기</a>}
+    </aside>
+  )
+}

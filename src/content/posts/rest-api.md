@@ -1,0 +1,197 @@
+---
+title: "RESTful API"
+slug: "rest-api"
+description: "RESTful API의 개념, 구성 요소, 장점, URI 설계 원칙을 정리한다."
+kind: "tech"
+publishedAt: "2024-04-16"
+draft: false
+deprecated: false
+outdated: false
+tags: ["api", "network", "rest"]
+relatedPosts: ["ajax-axios-fetch", "subnet-mask"]
+references:
+  - title: "AWS - RESTful API란 무엇인가요?"
+    url: "https://aws.amazon.com/ko/what-is/restful-api/"
+  - title: "REST란? REST API란? RESTful이란?"
+    url: "https://gmlwjd9405.github.io/2018/09/21/rest-and-restful.html"
+---
+
+## 공부하게 된 배경
+---
+
+Ajax, Axios를 공부하며, 우리가 흔히 알고 있는 REST API와 어떻게 다른지 정확히 알아보고자 한다.
+
+이전 포스트 참고 : [Ajax, Axois, fetch](/posts/ajax-axios-fetch/)
+
+## 다루는 내용
+---
+
+- REST
+- RESTful API
+
+
+## RESTful API란?
+---
+RESTful API는 두 컴퓨터 시스템이 인터넷을 통해 정보를 안전하게 교환하기 위해 사용하는 인터페이스다.
+
+대부분의 비즈니스 애플리케이션은 다양한 태스크를 수행하기 위해 다른 내부 애플리케이션 및 서드 파티 애플리케이션과 통신해야 한다.[^1]
+
+[^1]: 예를 들어 월간 급여 명세서를 생성하려면 인보이스 발행을 자동화하고 내부의 근무 시간 기록 애플리케이션과 통신하기 위해 내부 계정 시스템이 데이터를 고객의 뱅킹 시스템과 공유해야 한다.
+
+RESTful API는 **효율적이면서 안전하고 신뢰할 수 있는 소프트웨어 통신 표준**을 통해 정보 교환을 지원한다.
+
+![RESTful API](/assets/img/posts/2024-04-08-22-03-14.png)
+
+### API
+- API(Application Programming Interface)란
+    - 하나의 애플리케이션이나 서비스가 다른 애플리케이션이나 서비스 내의 리소스에 액세스할 수 있게 해주는 메커니즘[^2]
+    - 다른 소프트웨어 시스템과 통신하기 위해 따라야 하는 규칙을 정의
+- **REST API**의 정의
+    - REST 아키텍처를 기반으로 서비스 API를 구현한 것
+
+[^2]: 액세스를 수행하는 애플리케이션이나 서비스를 클라이언트라고 하고, 리소스가 포함된 애플리케이션이나 서비스를 서버라고 한다.
+
+
+REST API가 무엇인지 정확하게 알기 위해, REST에 대해 알아보자.
+
+## REST
+---
+REST는 **Representational State Transfer** 의 약자로 **소프트웨어 프로그램 아키텍처의 한 형식이다.**
+
+> **REST** :  
+> HTTP URI(Uniform Resource Identifier)를 통해 자원(Resource)을 명시하고,  
+> HTTP Method(POST, GET, PUT, DELETE, PATCH 등)를 통해  
+> 해당 자원(URI)에 대한 CRUD Operation[^3]을 적용하는 것을 의미한다.
+ 
+
+[^3]: CRUD Operation이란 CRUD는 대부분의 컴퓨터 소프트웨어가 가지는 기본적인 데이터 처리 기능인 Create(생성), Read(읽기), Update(갱신), Delete(삭제)를 묶어서 일컫는 말로, REST에서의 CRUD Operation 동작 예시는 다음과 같다. Create : 데이터 생성(POST), Read : 데이터 조회(GET), Update : 데이터 수정(PUT, PATCH), Delete : 데이터 삭제(DELETE)
+
+
+## REST 구성 요소
+---
+REST는 다음과 같은 3가지로 구성이 되어있다.
+
+
+### 1. 자원(Resource): HTTP URI
+
+- 모든 자원에 고유한 ID가 존재하고, 이 자원은 Server에 존재한다.
+- 자원을 구별하는 ID는 `/groups/:group_id`와 같은 HTTP URI 다.
+- Client는 URI를 이용해서 자원을 지정하고 해당 자원의 상태(정보)에 대한 조작을 Server에 요청한다.
+
+### 2. 행위(Verb): HTTP Method
+
+- HTTP 프로토콜의 Method를 사용한다.
+- HTTP 프로토콜은 **GET, POST, PUT, DELETE, PATCH** 와 같은 메서드를 제공한다.
+
+#### 3. 표현(Representation of Resource) : HTTP Message Pay Load
+
+- Client가 **자원의 상태(정보)에 대한 조작을 요청**하면 Server는 이에 **적절한 응답(Representation)**을 보낸다.
+- REST에서 하나의 자원은 **JSON, XML, TEXT, RSS 등 여러 형태의 Representation**으로 나타내어 질 수 있다.
+- **JSON 혹은 XML**를 통해 데이터를 주고 받는 것이 일반적이다.
+
+
+## RESTful API의 작동 방식
+---
+RESTful API의 기본 기능은 인터넷 브라우징과 동일하다.
+
+하지만 REST API 요청 및 응답 세부 정보는 API 개발자가 API를 설계하는 방식에 따라 약간씩 다르므로, 개발자는 API 문서에 클라이언트가 REST API를 어떻게 사용해야 하는지 기술한다. 그리고 클라이언트는 리소스가 필요할 때 해당 형식에 맞춰 API를 통해 서버에 접근하여 정보를 가져온다.(혹은 자원을 조작한다.)
+
+다음은 모든 REST API 호출에 대한 일반적인 단계이다.
+
+1. 클라이언트가 서버에 요청을 전송합니다. 클라이언트가 API 문서에 따라 서버가 이해하는 방식으로 요청 형식을 지정합니다.
+2. 서버가 클라이언트를 인증하고 해당 요청을 수행할 수 있는 권한이 클라이언트에 있는지 확인합니다.
+3. 서버가 요청을 수신하고 내부적으로 처리합니다.
+4. 서버가 클라이언트에 응답을 반환합니다. 응답에는 요청이 성공했는지 여부를 클라이언트에 알려주는 정보가 포함됩니다. 응답에는 클라이언트가 요청한 모든 정보도 포함됩니다.
+
+
+### RESTful API의 장점
+
+위의 RESTful API의 작동 방식에서 알 수 있듯이,  
+> RESTful API를 사용하면 클라이언트-서버가 완전히 독립적으로 분리될 수 있다.
+
+이는 자연스레 다음과 같은 장점을 가져올 수 있다.
+
+> 다양한 프로그래밍 언어로 클라이언트 및 서버 애플리케이션을 작성할 수 있다. 또한 통신에 영향을 주지 않고 양쪽의 기술들을 변경할 수 있다. 따라서 클라이언트와 서버가 각각 독립적으로 계층화하고, 효율적으로 크기를 확장하는 등의 발전이 가능하다. 서버는 클라이언트의 요청 정보를 유지할 필요가 없으므로(무상태성) 서버 로드를 제거하여 성능을 저하시키는 병목 현상을 줄일 수 있다.
+
+## REST API의 6가지 특징
+---
+
+### Server-Client(서버-클라이언트 구조)
+자원이 있는 쪽이 Server, 자원을 요청하는 쪽이 Client가 된다.
+REST Server: API를 제공하고 비즈니스 로직 처리 및 저장을 책임진다.
+Client: 사용자 인증이나 context(세션, 로그인 정보) 등을 직접 관리하고 책임진다.
+서로 간 의존성이 줄어든다.
+### Stateless(무상태)
+HTTP 프로토콜은 Stateless Protocol이므로 REST 역시 무상태성을 갖는다.
+Client의 context를 Server에 저장하지 않는다.
+즉, 세션과 쿠키와 같은 context 정보를 신경쓰지 않아도 되므로 구현이 단순해진다.
+Server는 각각의 요청을 완전히 별개의 것으로 인식하고 처리한다.
+각 API 서버는 Client의 요청만을 단순 처리한다.
+즉, 이전 요청이 다음 요청의 처리에 연관되어서는 안된다.
+물론 이전 요청이 DB를 수정하여 DB에 의해 바뀌는 것은 허용한다.
+Server의 처리 방식에 일관성을 부여하고 부담이 줄어들며, 서비스의 자유도가 높아진다.
+Cacheable(캐시 처리 가능)
+웹 표준 HTTP 프로토콜을 그대로 사용하므로 웹에서 사용하는 기존의 인프라를 그대로 활용할 수 있다.
+즉, HTTP가 가진 가장 강력한 특징 중 하나인 캐싱 기능을 적용할 수 있다.
+HTTP 프로토콜 표준에서 사용하는 Last-Modified 태그나 E-Tag를 이용하면 캐싱 구현이 가능하다.
+대량의 요청을 효율적으로 처리하기 위해 캐시가 요구된다.
+캐시 사용을 통해 응답시간이 빨라지고 REST Server 트랜잭션이 발생하지 않기 때문에 전체 응답시간, 성능, 서버의 자원 이용률을 향상시킬 수 있다.
+Layered System(계층화)
+Client는 REST API Server만 호출한다.
+REST Server는 다중 계층으로 구성될 수 있다.
+API Server는 순수 비즈니스 로직을 수행하고 그 앞단에 보안, 로드밸런싱, 암호화, 사용자 인증 등을 추가하여 구조상의 유연성을 줄 수 있다.
+또한 로드밸런싱, 공유 캐시 등을 통해 확장성과 보안성을 향상시킬 수 있다.
+PROXY, 게이트웨이 같은 네트워크 기반의 중간 매체를 사용할 수 있다.
+Code-On-Demand(optional)
+Server로부터 스크립트를 받아서 Client에서 실행한다.
+반드시 충족할 필요는 없다.
+Uniform Interface(인터페이스 일관성)
+URI로 지정한 Resource에 대한 조작을 통일되고 한정적인 인터페이스로 수행한다.
+HTTP 표준 프로토콜에 따르는 모든 플랫폼에서 사용이 가능하다.
+특정 언어나 기술에 종속되지 않는다.
+
+
+
+
+### REST API의 디자인 원칙
+
+REST에서 가장 중요하게 여기는 기본적인 규칙은 아래 2가지다.
+- **URI**는 정보의 자원을 표현해야 한다.
+- 자원에 대한 행위는 **HTTP Method (GET, POST, PUT, DELETE 등)**으로 표현한다.
+
+
+
+**세부 규칙**
+
+1. 슬래시 구분자 ( / )는 계층 관계를 나타내는데 사용한다.  
+    ex )`http://restapi.example.com/houses/apartments`
+2. URI 마지막 문자로 슬래시 ( / )를 포함하지 않는다.
+- 즉 URI에 포함되는 모든 글자는 리소스의 유일한 식별자로 사용되어야 하며 URI가 다르다는 것은 리소스가 다르다는 것
+- 역으로 리소스가 다르면 URI도 달라져야 한다.
+- ex )`http://restapi.example.com/houses/apartments/ (x)`
+3. 하이픈 ( - )은 URI 가독성을 높이는데 사용한다.
+4. 밑줄 ( _ )은 URI에 사용하지 않는다.
+5. URI 경로에는 소문자가 적합하다.
+- URI 경로에 대문자 사용은 피하도록 한다.
+6. 파일확장자는 URI에 포함하지 않는다.
+- REST API 에서는 메시지 바디 내용의 포맷을 나타내기 위한 파일 확장자를 URI 안에 포함시키지 않는다.
+- 대신 Accept Header 를 사용한다.
+- Ex) `http://restapi.example.com/members/soccer/345/photo.jpg (X)
+GET / members/soccer/345/photo HTTP/1.1 Host: restapi.example.com Accept: image/jpg (O)`
+7. 리소스 간에 연관 관계가 있는 경우
+- /리소스명/리소스ID/관계가 있는 다른 리소스 명
+- ex) `GET: /users/{userid}/orders` 
+    (일반적으로 소유의 관계를 표현할 때 사용)
+
+**REST API 설계 예시**
+
+REST API는 HTTP 요청을 통해 통신함으로써 리소스 내에서 레코드(CRUD 라고도 함)의 작성, 읽기, 업데이트 및 삭제 등의 표준 데이터베이스 기능을 수행한다.
+
+예를 들어, REST API는 `GET` 요청을 사용하여 레코드를 검색하고, `POST` 요청을 사용하여 레코드를 작성하며, `PUT` 요청을 사용하여 레코드를 업데이트하고, `DELETE` 요청을 사용하여 레코드를 삭제한다.
+
+![REST API 설계 예시](/assets/img/posts/2024-04-10-23-57-36.png)
+
+## References
+---
+- [REST란? REST API란? RESTful이란?](https://gmlwjd9405.github.io/2018/09/21/rest-and-restful.html)
+- [RESTful API란 무엇인가요?](https://aws.amazon.com/ko/what-is/restful-api/)

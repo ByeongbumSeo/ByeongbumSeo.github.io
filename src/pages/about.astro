@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE } from "../lib/site";
+---
+
+<BaseLayout title="About" description="백엔드 개발자 서병범의 소개와 기술 관심사입니다.">
+  <section class="about-hero">
+    <img src="/assets/img/profile/profile.png" alt="서병범 프로필 이미지" />
+    <div>
+      <p class="eyebrow">About</p>
+      <h1>서병범</h1>
+      <p>
+        B2C 앱을 운영하는 회사에서 백엔드 개발자로 일하고 있습니다. Java와 Spring 기반의 서버 기능을 만들고 운영하면서,
+        실무에서 마주친 문제와 다시 확인한 개념을 이곳에 기록합니다.
+      </p>
+      <p>
+        이 블로그는 대단한 성과를 포장하기보다, 일하면서 배운 내용을 오래 남기고 다음에 더 정확하게 판단하기 위한 개인 기록에 가깝습니다.
+      </p>
+      <div class="button-row">
+        <a class="contact-link" href={SITE.github}>GitHub</a>
+        <a class="contact-link" href={`mailto:${SITE.email}`}>Email</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

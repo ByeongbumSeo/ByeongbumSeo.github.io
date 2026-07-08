@@ -1,0 +1,274 @@
+---
+title: "HikariCP, Connection Pool"
+slug: "hikaricp-connection-pool"
+description: "HikariCP와 데이터베이스 커넥션 풀의 역할, 동작 과정, 설정 기준을 정리한다."
+kind: "tech"
+publishedAt: "2023-12-07"
+updatedAt: "2026-07-07"
+draft: false
+deprecated: false
+outdated: false
+tags: ["java", "spring", "database", "hikaricp"]
+relatedPosts: ["jdbc", "spring-jdbctemplate"]
+references:
+  - title: "HikariCP GitHub"
+    url: "https://github.com/brettwooldridge/HikariCP"
+  - title: "MySQL 8.0 Reference Manual - Optimizing INSERT Statements"
+    url: "https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html"
+  - title: "PostgreSQL Wiki - Number Of Database Connections"
+    url: "https://wiki.postgresql.org/wiki/Number_Of_Database_Connections"
+---
+
+## 공부하게 된 배경
+나와 같이 Java, 특히 Springboot를 이용하여 개발하는 사람들에게 HikariCP는 매우 익숙하다.  
+나는 개발을 시작하면서부터 자연스럽게 HikariCP를 이용하고 있었는데, 그동안 아무 생각없이 사용하던 이 라이브러리를 이번 기회에 정리하려고 한다.  
+
+> Spring 에서는 사용자가 직접 커넥션을 관리할 필요없이 자동화된 기법들을 제공하는데 Spring Boot 2.0 버전부터는 `Tomcat JDBC` 대신에 `Hikari`를 사용하며 spring-boot-starter-data-jpa 와 spring-boot-starter-jdbc에 의존성이 포함되어 있다고 한다.
+
+## 다루는 내용
+이 글에서는 HikariCP 를 설명하며 연관 지식으로
+- DB Connection
+- Connection Pool
+
+에 대해서도 다룬다.  
+
+## HikariCP(Hikari Connection Pool) 란?
+---
+> Fast, simple, reliable. HikariCP is a "zero-overhead" production ready JDBC connection pool. At roughly 130Kb, the library is very light.
+
+> 빠르고, 간단하고 믿을 수 있는 HikariCP는 "오버헤드 제로"의 프로덕션 지원 JDBC 연결 풀입니다. 대략 130KB이며 이 라이브러리는 매우 가볍습니다.
+
+출처 : [https://github.com/brettwooldridge/HikariCP#-hikaricpits-fasterhikari-hikal](https://github.com/brettwooldridge/HikariCP#-hikaricpits-fasterhikari-hikal)
+
+<aside class="callout callout-note">
+<strong>Note</strong>
+<p>이 글에서는 커넥션 생성 비용을 줄이고 서버 자원을 예측 가능하게 쓰기 위한 기본 개념을 먼저 잡습니다.</p>
+</aside>
+
+- HikariCP는 **데이터베이스 연결(Connection)을 관리해 주는 도구(라이브러리)**이다.
+- HikariCP에서 <span class="term" tabindex="0" data-definition="데이터베이스 연결을 미리 만들어 보관했다가 요청 시 재사용하는 기법입니다.">커넥션 풀</span>(Connection Pool)이 설정된 커넥션의 사이즈만큼의 연결을 허용하며 HTTP 요청에 대해 순차적으로 DB 커넥션을 처리해 주는 기능을 수행한다.
+- SpringBoot 2.x가 출범하면서 HikariCP를 기본 JDBC Connection Pool로 사용할 수 있게 되었다.
+
+SpringBoot에서 HikariCP를 사용하는 이유는 다른 커넥션 풀 관리 라이브러리에 비해 월등한 성능을 보여주기 때문인데, HikariCP가 빠른 성능을 보여주는 이유는 커넥션풀의 관리 방법에 있다.
+
+![HikariCP 성능비교](/assets/img/posts/2024-01-01-20-41-16.png)
+> 출처 : [HikariCP-benchmark](https://github.com/brettwooldridge/HikariCP-benchmark)[^1]
+> - **Connection Cycle ops/ms** : DataSource.getConnection(), Connection.close()에 대한 DB 연결과 연결해제를 비교 측정한 값  
+> - **Statement Cycle ops/ms** : Connection.prepareStatement(), Statement.execute(), Statement.close() 데이터 베이스의 상태로 준비 > 수행 > 종료 단계를 비교 측정한 값
+
+[^1]: HikariCP 벤치마크 페이지는 다른 JDBC 커넥션 풀 라이브러리와 HikariCP의 성능 비교 또는 테스트 페이지를 나타낸다. 이 벤치마킹 페이지는 데이터베이스 연결 관리에 있어서 HikariCP의 효율성, 속도 및 확장성을 강조하는 것을 목표로 한다.
+
+HikariCP는 Connection 객체를 한번 Wrappring한 **PoolEntry**라는 Type으로 Connection을 관리하고, 이를 관리하는 **ConcurrentBag**이라는 구조체를 사용하고 있다.
+그리고 ConcurrentBag은 `HikariPool.getConnection() -> ConcurrentBag.borrow()`라는 메서드를 통해 사용 가능한(idle) Connection을 리턴하도록 되어있다.
+이 과정에서 커넥션을 요청한 스레드의 정보를 저장해두고 다음 접근 시 저장된 정보를 이용해 빠르게 반환해준다.  
+
+이 이상의 자세한 설명은 [우아한 기술 블로그](https://techblog.woowahan.com/2664/)에 굉장히 쉽게 설명되어 있으니 참고 바란다.
+
+HikariCP가 커넥션 풀을 관리해주는 라이브러리라는 것은 알았다. 그럼 커넥션 풀은 왜 사용할까? 에 대해서 알아보자.
+
+## 데이터 베이스 커넥션 풀(Database Connection Pool, DBCP)
+---
+**간략한 설명**
+
+> 커넥션 풀은 웹 어플리케이션이 실행됨과 동시에 연동할 데이터베이스와 커넥션을 미리 만들어 놓고 필요할 때마다 커넥션 풀의 커넥션을 이용하고 반환하는 기법이다.  
+> 미리 만들어 놓은 커넥션을 이용하면 Connection에 필요한 비용을 줄일 수 있어, DB에 빠르게 접속할 수 있다.
+
+### Connection Pool 사용 이유
+
+WAS(Web Application Server)와 데이터베이스 사이의 연결에는 많은 비용이 든다. MySQL 8.0을 기준으로 INSERT 문을 수행할 때 필요한 비용의 비율은 다음과 같다. (전체 비용을 10이라고 가정하겠다.)
+
+1. Connecting (3) 
+2. Sending query to server (2)
+3. Parsing query (2)
+4. Inserting row (1)
+5. Inserting index(1)
+6. Closing (1)
+
+> [MySQL 8.0 Documentation](https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html)  
+
+**Connecting 비용이 가장 큰 비율을 차지**하는 것을 보면 알 수 있듯이 서버가 DB에 연결하기 위한 Connection을 생성하는 것은 비용이 많이 드는 작업이다.  
+이는 Connecting 과정을 더 자세히 들여다보면 그 이유를 알 수 있다.  
+
+#### 일반적인 데이터베이스의 연결 단계
+1. 데이터베이스 드라이버를 사용해 데이터베이스 연결 열기
+2. 데이터 읽기/쓰기를 위한 TCP 소켓 열기
+3. 소켓을 통한 데이터 읽기/쓰기
+4. 연결 닫기
+5. 소켓 닫기
+
+만약 트랜잭션을 한번 열 때마다, 혹은 요청이 한번 들어올 때마다 위 과정을 수행한다면 실제 연산이나 쿼리 시간과는 무관하게 많은 시간이 소요될 것이다.(이는 곧 로직 수정이나 쿼리 튜닝으로는 해결할 수 없다는 말이기도 하다.)
+
+이를 보완하기 위해 나온 방법이 바로 **Connection Pool**이다.
+
+
+![커넥션 풀](/assets/img/posts/2023-12-11-23-40-04.png)
+> 출처: https://www.ibm.com/developerworks/data/library/techarticle/dm-1105fivemethods/index.html  
+> 이미지가 잘 보이지 않을 시, 사이드 바에서 화이트 모드로 전환하여 확인 부탁드립니다.
+
+Connection Pool 방식은 매번 소켓을 생성하는 것이 아니라 미리 정해진 개수의 Connection을 생성해서 Pool에 보관하다가 재사용하여 데이터를 교환하는 방식이다. 
+이러한 방식은 이미 형성된 Connection을 재사용한다는 점에서 반복적인 3-way-handshaking 과정을 제거할 수 있으므로 훨씬 더 빠르게 통신할 수 있다.
+
+또한 커넥션 풀을 사용하면 커넥션 수를 제한할 수 있어 과도한 접속으로 인한 서버 자원 고갈을 방지할 수 있으며 DB 접속 모듈을 공통화해 DB 서버의 환경이 바뀌어도 손쉽게 유지보수가 가능하다.
+
+
+### Connection Pool 동작 과정
+
+![커넥션풀 동작과정](/assets/img/posts/2024-01-02-22-54-37.png)
+> 출처 : https://hyuntaeknote.tistory.com/12
+
+- Thread가 커넥션을 요청했을 때 유휴(남는) 커넥션이 존재한다면 해당 커넥션을 반환해준다.
+- 여기서 HikariCP는, 이전에 사용했던 Connection이 존재하는지 확인하고, 이를 우선적으로 반환하는 특징을 갖고 있다.
+
+![HandOffQueue](/assets/img/posts/2024-01-02-22-57-06.png)
+> 출처 : https://hyuntaeknote.tistory.com/12
+
+- 만약 유휴 커넥션이 존재하지 않는다면, HandOffQueue를 Polling 하면서 다른 Thread가 커넥션을 반납하기를 기다린다.(해당 클라이언트의 요청을 대기 상태로 전환)  
+- 이 때 지정한 TimeOut 시간을 넘어선다면, Exception이 발생하게 된다.
+- 다른 Thread가 커넥션 풀에 커넥션을 반납하면 커넥션 풀은 HandOffQueue에 반납된 커넥션을 삽입하고 HandOffQueue를 Polling 하던 Thread는 커넥션을 획득하게 된다.
+
+![HandOffQueue2](/assets/img/posts/2024-01-02-23-00-57.png)
+> 출처 : https://hyuntaeknote.tistory.com/12
+
+- 사용한 Connection을 반납하면 Connection Pool이 사용내역을 기록하고, HandOffQueue에 반납된 Connection을 삽입한다.
+- 이를 통해 HandOffQueue를 Polling 하던 또 다른 Thread는 Connection을 획득한다.  
+
+
+이렇게 Thread들은 트랜잭션을 처리하기 위해서 Connection을 획득하고, 이를 반납함으로써 상대적으로 비싼 작업인 Connection 생성을 줄일 수 있다.  
+
+여기서 !  
+만약 **커넥션 풀의 크기가 너무 작다면**, 커넥션을 획득하기 위해 대기하고 있는 Thread가 많아지게 되면서 성능 저하가 발생할 수 있다. 그리고 이러한 문제는 **커넥션 풀의 크기를 늘려주면** 해결할 수 있다.  
+
+그렇다면 Connection Pool에 저장된 Connection 개수가 무제한으로 커지면 성능이 좋아질까?
+아니라면 커넥션 풀의 크기는 어느 정도인 게 좋을까?
+
+### Connection Pool의 크기와 성능
+
+커넥션 풀이 크면 클수록 좋을까? 언뜻 생각해보면 커넥션을 많이 가지고 있을수록 유리할 것 같긴 하다.  
+하지만, Connection을 사용하는 주체인 Thread의 개수보다 커넥션 풀의 크기가 크다면 사용되지 않고 남는 커넥션이 생겨 불필요한 메모리의 낭비가 발생하게 된다.
+ 
+MySQL의 공식레퍼런스에서는 600여 명의 유저를 대응하는데 15~20개의 커넥션 풀만으로도 충분하다고 언급하고 있다. 그리고 최대 연결 수를 무제한으로 설정한 뒤 부하 테스트를 진행하면서 최적화된 값을 찾아나가는 것을 추천하고 있다.
+ 
+또한 [우아한 형제들 테크 블로그](https://techblog.woowahan.com/2663/)에서는 다음과 같은 공식을 추천하고 있다.
+
+![커넥션 풀 size 공식](/assets/img/posts/2023-12-12-23-46-30.png)
+> 출처 : https://techblog.woowahan.com/2663/ 
+
+- Tn = 전체 Thread의 개수
+- Cm = 하나의 Task에서 동시에 필요한 Connection 수
+- 해당 공식은 HikariCP wiki에서 Dead lock을 피할 수 있다고 언급된 공식이라고 한다. 자세한 정보는 위의 출처(우아한형제들 블로그)를 참고하기 바란다.
+ 
+DB와 WAS의 Context Switching 역시 한계가 있기 때문에 Thread Pool의 크기는 Conncetion Pool의 크기를 결정하는데 매우 중요하다.
+ 
+커넥션 풀의 크기와 성능에 대하여 좀 더 자세히 알고 싶다면 다음을 참고하자.
+[https://wiki.postgresql.org/wiki/Number_Of_Database_Connections](https://wiki.postgresql.org/wiki/Number_Of_Database_Connections)
+
+
+
+## HikariCP 설치
+---
+### 1. 빌드 관리 도구에 라이브러리 추가
+
+기존 라이브러리 `spring-boot-data-jdbc` 내에 HikariCP가 포함이 되어 있다.
+
+```groovy
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+}
+```
+
+### 2. application.properties(혹은 yml) 파일 수정
+
+기존에는 ‘datasource’ 내에 바로 연결을 하였으나 ‘hikari’를 중간에 거쳐서 환경설정을 하는 것으로 변경한다.
+> spring.datasource.hikari.~~로 속성을 넣어줄 수 있다.
+
+- **예시 코드 (application.yml)**
+
+```yml
+spring:
+ datasource:
+   url: jdbc:mysql://localhost:3306/world?serverTimeZone=UTC&CharacterEncoding=UTF-8
+   username: root
+   password: your_password
+   hikari:
+     maximum-pool-size: 10
+     connection-timeout: 5000
+     connection-init-sql: SELECT 1
+     validation-timeout: 2000
+     minimum-idle: 10
+     idle-timeout: 600000
+     max-lifetime: 1800000
+
+server:
+ port: 8000
+```
+
+이 방법 외에, Java 코드 단에서 HikariConfig를 직접 설정해주는 방법도 있다.
+
+### 3. DBConfig 파일 생성
+
+@Configuration을 선언한 Class에서 HikariCP 설정을 적용한다.
+
+- **예시 코드**
+
+```java
+@Configuration
+@PropertySource("classpath:/application.properties")
+public class DBConfig {
+    final
+    ApplicationContext applicationContext;
+
+    public DBConfig(ApplicationContext ac) {
+        this.applicationContext = ac;
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.hikari")
+    public HikariConfig hikariConfig() {
+        return new HikariConfig();
+    }
+    @Bean
+    public DataSource dataSource() {
+        return new HikariDataSource(hikariConfig());
+    }
+
+    @Bean
+    public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+        SqlSessionFactoryBean session = new SqlSessionFactoryBean();
+        session.setDataSource(dataSource);
+        session.setMapperLocations(applicationContext.getResources("classpath:mapper/*.xml"));
+        session.setTypeAliasesPackage("com.test.testApi.model");
+        session.setConfigLocation(new PathMatchingResourcePatternResolver().getResource("classpath:mybatis/mybatis-config.xml"));
+        return session.getObject();
+    }
+
+    @Bean
+    public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
+    }
+}
+```
+출처 : [[Java/Library] HikariCP 이해하고 적용하기 (with. MyBatis)](https://adjh54.tistory.com/73#2)
+
+### (추가) options 설명
+1. maximum-pool-size: 풀의 최대 크기를 나타냅니다.
+2. connection-timeout: 데이터베이스 연결을 시도하는 시간 초과 시간을 지정합니다.
+3. connection-init-sql: 연결이 초기화될 때 실행할 SQL 쿼리를 설정합니다.
+4. validation-timeout: 유효성 검사를 수행하는 시간 초과 시간을 지정합니다.
+5. minimum-idle: 최소한으로 유지할 연결의 수를 지정합니다.
+6. idle-timeout: 유휴 연결이 제거되기 전 대기할 수 있는 최대 시간을 설정합니다.
+7. max-lifetime: 연결이 풀에서 유지될 수 있는 최대 시간(ms)을 나타냅니다.
+8. auto-commit: auto commit 여부 (default true)
+
+이 이상의 자세한 설명(default값 등)은 [Hikari 공식 Github](https://github.com/brettwooldridge/HikariCP)에서 참고 바란다.
+
+
+
+
+## References
+[HikariCP 공식 Github](https://github.com/brettwooldridge/HikariCP)
+[코드 연구소:티스토리-DB 커넥션 풀(Connection pool)이란? HikariCP란?](https://code-lab1.tistory.com/209)  
+[MySQL - Optimizing INSERT Statements](https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html)  
+[DevTaek 의 개발노트 - DB Connection Pool](https://hyuntaeknote.tistory.com/12)  
+[카프카뮈 - DB 커넥션 풀과 HikariCP](https://kafcamus.tistory.com/47)  
+[우아한 기술 블로그 - HikariCP Dead lock](https://techblog.woowahan.com/2664/)  
+[[Java/Library] HikariCP 이해하고 적용하기 (with. MyBatis)](https://adjh54.tistory.com/73#2)

@@ -1,0 +1,82 @@
+---
+title: "Github 블로그 생성기(1)"
+slug: "github-pages-blog-setup-1"
+description: "GitHub Pages 블로그 생성 과정을 정리한 첫 번째 기록이다."
+kind: "note"
+publishedAt: "2023-11-13"
+draft: false
+deprecated: false
+outdated:
+  since: "2026-07-07"
+  reason: "현재 블로그는 Jekyll/Chirpy에서 Astro 기반으로 재구축되었으므로 일부 설정은 레거시 맥락입니다."
+tags: ["github-pages", "blog"]
+series:
+  slug: "github-pages-blog-setup"
+  title: "GitHub Pages Blog Setup"
+  order: 1
+relatedPosts: ["github-pages-blog-setup-2", "github-pages-blog-setup-3"]
+references: []
+---
+
+Github 블로그를 생성하기까지 굉장히 많은 헤메임이 있었다.<br/>
+그 과정에서 새로운 것들을 많이 배웠기 때문에 좋은 경험이라고도 할 수 있겠지만,
+조금은 답답했던 것도 사실이여서(얼른 만들고 글쓰고 싶어..)
+Github 블로그를 만들고자 하는 누군가를 위해서 이 글을 작성해본다.
+
+우선, 블로그는 크게 두 종류로 나눌 수 있다.<br/>
+- 서비스형 블로그 : 블로그 서비스에 가입하여 만든 블로그. ex) 네이버 블로그, 티스토리 등
+- 설치형 블로그 : 블로그 소프트웨어를 웹서버에 설치하여 만드는 블로그. ex) 워드프레스(Wordpress), 지킬(Jekyll) 등
+
+그 중 나는 설치형 블로그를 사용해보고 싶었다.
+
+## 왜 설치형 블로그를 선택했을까 ? 
+**설치형 블로그**, 즉 블로그 소프트웨어를 자신의 웹 계정에 설치해 사용하는 블로그는 내가 모든 것을 직접 설치해서 사용하기 때문에 그 방법이나 형식들이 매우 자유롭다. 하지만 유지관리 또한 자신의 몫이기 때문에 관련 지식도 많이 필요하고, 손이 많이 간다는 단점이 있다.
+
+### Jekyll 과 GitHub Pages
+이같은 단점을 극복하기 위해 나를 포함한 대부분의 블로거들은
+Github에서 제공하는 `Jekyll` 같은 정적 사이트 생성기와 `GitHub Pages`의 무료 호스팅 기능을 활용해서 Github.io로 블로그를 운영한다.<br/>
+참고 : [https://pages.github.com/](https://pages.github.com/)
+
+#### Jekyll
+>정적 사이트 생성기(텍스트 변환 엔진).
+
+Jekyll 은 다양한 포맷의 원본 텍스트 파일을 템플릿 디렉토리로부터 읽어서, (Markdown 등의) 변환기와 Liquid 렌더러를 통해 가공하여, 웹 서버에 곧바로 게시할 수 있는, 완성된 정적 웹사이트를 만들어낸다. 그리고 Jekyll 은 GitHub Pages 의 내부 엔진이기도 하다.(Github CEO가 만들었다.)<br/>
+Ruby를 기반으로 만들어져있지만 내부적으로만 사용될 뿐, 외부적으로는 사용할 일이 없으니 루비를 모른다고 걱정하거나 공부할 필요는 없다.[^1]
+
+[^1]: 만약 플러그인을 만들거나 커스텀해서 사용할 생각이라면 루비 관련 지식이 필요하다. 지킬 플러그인은 루비 잼(Ruby Gem)으로 만들어져 있기 때문이다. 그런데 깃허브 페이지에서는 몇몇 선택된 플러그인을 제외한 모든 플러그인을 사용하지 못하게 되어 있다. 깃허브 페이지를 사용할 생각이라면 루비를 몰라도 된다.
+
+
+#### Github Pages
+ Github에서 공식적으로 운영하고, 회원 가입 후 Repository만 생성하면 사용 가능하다.<br/>
+정적 웹사이트 호스팅 서비스로서 자신의 Repository에서 웹 페이지를 구동할 수 있도록 해준다.<br/>
+> 참고 : [GitHub Pages 문서](https://docs.github.com/ko/pages/getting-started-with-github-pages/about-github-pages)
+
+<br/>
+
+이를 통해 `Markdown`을 사용해서 포스트를 작성하면 자동으로 `HTML`로 변환할 수 있고,<br/>
+또한 `GitHub Pages`의 무료 호스팅 기능을 통해 내 Repository의 소스(HTML, CSS 및 JavaScript 파일)를 직접 가져와서 Build 프로세스를 통해 파일을 실행하고, 웹 사이트를 게시할 수 있다.
+
+내가 원하는 대로 커스터마이징을 할 수 있다는 점이 Github 블로그의 가장 큰 매력이기도 하지만,<br/>
+나처럼 CSS에 큰 관심이 없고, 재능이 없는 사람이라면 `Jekyll 테마`를 사용하면 편리하다.
+> [http://jekyllthemes.org/](http://jekyllthemes.org/)
+
+
+나는 이 중 **Chirpy**라는 Theme가 가장 마음에 들었다.
+
+### 블로그 생성 방법
+
+해당 Theme의 소스코드가 있는 Github으로 가서 fork해오는 방법도 있지만,
+fork해온 Repository에 Commit을 하게되면 ***잔디가 심어지지 않으므로!***[^2]<br/>
+로컬로 Clone을 한 뒤, 새로 만든 내 Repository에 직접 Push하는 방법으로 생성했다.
+
+[^2]: 매일 꾸준히 공부할 수 있도록 **잔디 심기**라는 동기부여가 필요했다. 사실 Github Blog를 선택한 가장 큰 이유.
+
+이 때, `'Username.github.io'` 의 이름으로 Repository를 생성하면, 별도의 작업없이 소스만 업로드하면 자동으로 호스팅이된다. (도메인 : 저장소명)
+> ex) 가입한 사용자 이름 : `ByeongbumSeo` => Repository : `ByeongbumSeo.github.io` <br/>
+=> 도메인 : https://ByeongbumSeo.github.io
+
+
+
+여기까지 왔다면, 사실상 거의 다 만들었다고 봐도 무방하다! 다음 단계로 넘어가자.
+
+---

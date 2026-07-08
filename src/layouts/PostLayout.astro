@@ -1,0 +1,63 @@
+---
+import type { MarkdownHeading } from "astro";
+import type { Post } from "../lib/posts";
+import { formatDate } from "../lib/posts";
+import { SECTION_LABELS, SECTION_PATHS } from "../lib/site";
+import BaseLayout from "./BaseLayout.astro";
+import FloatingToc from "../components/FloatingToc.astro";
+import References from "../components/References.astro";
+import RelatedPosts from "../components/RelatedPosts.astro";
+import SeriesNav from "../components/SeriesNav.astro";
+import StatusBanner from "../components/StatusBanner.astro";
+
+interface Props {
+  post: Post;
+  headings: MarkdownHeading[];
+  relatedPosts: Post[];
+  seriesPosts: Post[];
+}
+
+const { post, headings, relatedPosts, seriesPosts } = Astro.props;
+const sectionLabel = SECTION_LABELS[post.data.kind];
+const sectionPath = SECTION_PATHS[post.data.kind];
+const normalizedHeadings = headings
+  .filter((heading) => heading.slug !== "footnote-label")
+  .map((heading, index) => ({ ...heading, slug: `section-${index + 1}` }));
+const tocHeadings = normalizedHeadings
+  .filter((heading) => heading.depth >= 2 && heading.depth <= 3);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="post-shell">
+    <header class="post-header">
+      <a class="section-label" href={sectionPath}>{sectionLabel}</a>
+      <h1>{post.data.title}</h1>
+      <p class="post-description">{post.data.description}</p>
+      <div class="post-meta">
+        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        {
+          post.data.updatedAt && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Updated <time datetime={post.data.updatedAt.toISOString()}>{formatDate(post.data.updatedAt)}</time></span>
+            </>
+          )
+        }
+      </div>
+      <div class="tag-list" aria-label="Tags">
+        {post.data.tags.map((tag) => <a href={`/tags/${tag}/`}>{tag}</a>)}
+      </div>
+      <StatusBanner label="Deprecated" status={post.data.deprecated} />
+      <StatusBanner label="Outdated" status={post.data.outdated} />
+      <SeriesNav post={post} posts={seriesPosts} />
+    </header>
+    <div class="post-layout">
+      <div class="post-content">
+        <slot />
+      </div>
+      <FloatingToc headings={tocHeadings} />
+    </div>
+    <References references={post.data.references} />
+    <RelatedPosts posts={relatedPosts} />
+  </article>
+</BaseLayout>

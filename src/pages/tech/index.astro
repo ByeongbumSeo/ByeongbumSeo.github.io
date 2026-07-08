@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getKindPosts, getPublishedPosts } from "../../lib/posts";
+
+const posts = getKindPosts(await getPublishedPosts(), "tech");
+---
+
+<BaseLayout title="Tech" description="일하며 공부한 기술 주제를 정리한 글입니다.">
+  <section class="page-heading">
+    <p class="eyebrow">Technical writing</p>
+    <h1>Tech</h1>
+    <p>개념과 맥락을 다시 확인할 수 있도록 정리한 기술 글입니다.</p>
+  </section>
+  <PostList posts={posts} />
+</BaseLayout>

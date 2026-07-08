@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostList from "../components/PostList.astro";
+import { getKindPosts, getPublishedPosts } from "../lib/posts";
+import { SITE } from "../lib/site";
+
+const posts = await getPublishedPosts();
+const techPosts = getKindPosts(posts, "tech");
+const notePosts = getKindPosts(posts, "note");
+const diaryPosts = getKindPosts(posts, "diary");
+---
+
+<BaseLayout>
+  <section class="home-intro">
+    <div>
+      <p class="eyebrow">기록하는 연습</p>
+      <h1>일하며 배우고 고민한 것을 글로 남깁니다.</h1>
+      <p>
+        일하면서 마주친 문제, 다시 설명하고 싶은 개념, 오래 남기고 싶은 생각을 적습니다.<br />
+        짧은 메모와 일상의 기록도 이곳에 남깁니다.
+      </p>
+    </div>
+    <aside class="profile-panel">
+      <img src="/assets/img/profile/profile.png" alt="서병범 프로필 이미지" />
+      <strong>{SITE.author}</strong>
+      <span>생각과 배움을 기록합니다.</span>
+      <a href="/about/">About</a>
+    </aside>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Latest</p>
+        <h2>최근 글</h2>
+      </div>
+      <a class="section-action" href="/tech/">Tech 전체 보기</a>
+    </div>
+    <PostList posts={posts.slice(0, 6)} />
+  </section>
+
+  <section class="three-column">
+    <div>
+      <h2>Tech</h2>
+      <p>SEO를 고려해 개념, 동작 원리, 참고 자료를 함께 정리합니다.</p>
+      <a href="/tech/">{techPosts.length} posts</a>
+    </div>
+    <div>
+      <h2>Notes</h2>
+      <p>명령어, 도구 사용법, 짧은 지식처럼 다시 찾아볼 내용을 모읍니다.</p>
+      <a href="/notes/">{notePosts.length} posts</a>
+    </div>
+    <div>
+      <h2>Diary</h2>
+      <p>성장 과정, 협업, 커리어 고민을 개인 기록으로 남깁니다.</p>
+      <a href="/diary/">{diaryPosts.length} posts</a>
+    </div>
+  </section>
+</BaseLayout>

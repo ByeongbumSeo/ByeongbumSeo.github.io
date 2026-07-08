@@ -1,0 +1,529 @@
+---
+title: "Lombok"
+slug: "lombok"
+description: "Lombok의 목적, 주요 어노테이션, 설정 방법을 정리한다."
+kind: "tech"
+publishedAt: "2024-02-03"
+draft: false
+deprecated: false
+outdated: false
+tags: ["java", "spring", "lombok"]
+relatedPosts: ["jdk-jre-jvm"]
+references: []
+---
+
+## 공부하게 된 배경
+대부분의 Java 개발자들은 기계적인 코드 작성을 피하기 위해 이미 Lombok을 필수적으로 사용하고 있을 것이다. 
+
+나 또한 이미 현업에서 Lombok 어노테이션을 굉장히 많이 쓰고있지만, 무분별한 남용보다는 필요에 따라서 최소한으로만 적용하면서 개발하는 습관을 길러야겠다는 생각이 들었다.  
+
+보일러플레이트[^1] 코드를 최소화할 수 있는 Lombok에 대해서 다시 한번 확실히 공부하고, 정확히 알고 사용해야겠다.
+
+[^1]: 보일러플레이트(Boilerplate)는 주로 반복되는 코드나 구조를 지칭한다. 이러한 코드는 주로 특정 작업이나 패턴에 대한 공통적인 부분으로, 프로그래머가 계속해서 작성해야 하는 번거로운 코드이다.
+
+## 다루는 내용
+기본적인 Lombok에 대한 정의 이외에도
+
+- 다양한 어노테이션의 정의 및 예제
+- 생성자 자동완성 어노테이션의 구분 (@NoArgsConstructor, @RequiredArgsConstructor, @AllArgsConstructor)
+- @ToString 무한 루프 주의점
+- Lombok 의존성 주입 방법
+
+등을 다룬다.
+
+
+
+## Lombok(롬복) 이란 ?
+---
+> Lombok은 Java 프로젝트에서 반복적이고 장황한 코드를 줄이기 위한 간편한 라이브러리.  
+> Lombok에서 지원해주는 **어노테이션을 통해 Getter, Setter, Constructor 등의 메서드를 자동으로 생성**할 수 있다.
+
+아래는 Lombok이 제공하는 주요 어노테이션이다.
+
+1. @Getter, @Setter
+    : 필드에 대한 Getter 및 Setter 메서드를 자동으로 생성한다.
+2. @ToString
+    : 모든 필드를 출력하는 toString() 메서드를 자동으로 생성한다. `클래스명(필드명1=값1, 필드명2=값2, . . . )`형태로 출력된다.
+3. @EqualsAndHashCode
+    : equals() 및 hashCode() 메서드를 생성한다.
+4. @NoArgsConstructor, @RequiredArgsConstructor, @AllArgsConstructor
+    : 기본 생성자, 필수 인자를 갖는 생성자, 모든 필드를 인자로 받는 생성자를 생성한다.
+5. @Data
+    : 다음 어노테이션들을 모두 한번에 처리 한다.
+        - @ToString
+        - @EqualsAndHashCode
+        - @Getter(모든 필드)
+        - @Setter(모든 필드-final로 성언되지 않은)
+        - @RequiredArgsConstructor
+
+이외에도 @Builder를 통해 빌더 패턴도 활용 가능하다.
+
+
+## Lombok을 사용 코드 예시
+---
+
+Lombok의 어노테이션을 활용하면 아래와 같은 코드들을 간편하게 생성할 수 있다.
+
+```java
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class TestVo {
+    private String id;
+    private String name;
+    
+    /*  @NoArgsConstructor 어노테이션을 통해 생략 가능
+    public TestVo() {
+    }
+
+    /*  @AllArgsConstructor 어노테이션을 통해 생략 가능
+    public TestVo(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+    */
+    
+    /* @Getter, @Setter 어노테이션을 통해 생략 가능
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+    */
+    
+    /* @EqualsAndHashCode 어노테이션을 통해 생략 가능
+	@Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TestVo testVo = (TestVo) o;
+        return Objects.equals(id, testVo.id) &&
+                Objects.equals(name, testVo.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
+    */
+    
+
+    /* @ToString 어노테이션을 통해 생략 가능
+    @Override
+    public String toString() {
+        return "TestVo{" + "id='" + id + '\'' + ", name='" + name + '\'' + '}';
+    
+	}
+    */
+}
+```
+
+## 생성자 자동완성 어노테이션 정리
+---
+생성자에 대한 자동완성 어노테이션들을 예시 코드와 함께 정리하도록 하겠다.
+
+- 예시 클래스
+
+```java
+public class Member{
+    private String id;
+    private String name;
+}
+```
+
+
+### @AllArgsConstructor
+: 모든 변수를 사용하는 생성자를 자동완성 시켜주는 어노테이션
+
+```java
+@Getter
+@AllArgsContructor
+public class Member{
+    private String id;    
+    private String name;
+    
+    /* AllArgsContructor를 통해 아래와 같은 생성자를 자동 생성할 수 있다.
+    public Member(String id, String name){
+      this.id = id;
+      this.name = name;
+    }
+    */
+}
+```
+
+### @NoArgsConstructor
+: 어떠한 변수도 사용하지 않는 기본 생성자를 자동완성 시켜주는 어노테이션
+
+```java
+@Getter
+@NoArgsContructor
+public class Member{
+    private String id;    
+    private String name;
+    
+    /* NoArgsContructor를 통해 아래와 같은 생성자를 자동 생성할 수 있다.
+    public Member(){}
+    */
+}
+```
+
+### @RequiredArgsConstructor
+: 특정 변수만을 활용하는 생성자를 자동완성 시켜주는 어노테이션. 생성자의 인자로 추가할 변수에 @NonNull 어노테이션 또는 변수에  final로 선언해서 의존성을 주입받을 수 있다.
+
+```java
+@Getter
+@RequiredArgsContructor
+public class Member extends Common{
+    @NonNull
+    private String id;    
+    private final String name;  // final 선언
+    
+    /* RequiredArgsContructor 를 통해 아래와 같은 생성자를 자동 생성할 수 있다.
+    public Member(String id, String name){
+    	this.id = id;
+        this.name = name;
+    }
+    */
+}
+```
+
+
+## 다양한 Lombok Anotation
+---
+
+
+- @Builder : 생성자 대신 사용할 수 있는 Builder를 추가해준다.
+- @NonNull : 자동으로 Null 체크 가능. (해당 변수가 null로 넘어온 경우 NullPointerException 발생)
+- @Cleanup : 자동 리소스 관리. try finally에서 close()를 대신 호출.
+- @Value : 불변 클래스를 쉽게 생성
+- @SneakyThrows : Exception 발생시 체크된 Throable로 감싸서 전달
+- @Synchronized : 메소드에서 동기화 Lock을 설정
+- @Getter(lazy=true) : 동기화를 이용하여 최초 1회만 getter가 호출
+- @Log : 종류별 로그를 사용할 수 있도록 한다. (@Log, @Slf4j, @CommonLog 등)등등.
+
+
+### @EqualsAndHashCode 예제
+@EqualsAndHashCode 어노테이션을 활용하면 클래스에 대한 equals 함수와 hashCode 함수를 자동으로 생성해준다. 만약 서로 다른 두 객체에서 특정 변수의 이름이 똑같은 경우 같은 객체로 판단을 하고 싶다면 아래와 같이 해줄 수 있다.
+
+```java
+@RequiredArgsContructor
+@EqualsAndHashCode(of={"id", "name"}, callSuper=false)
+public class Member extends Common{
+    @NonNull
+    private String id;    
+    private final String name;  // final 선언
+        
+}
+```
+
+> 위의 @EqualsAndHahsCode(of={"id", "name"}) 로 설정하여 id와 name이 동일하다면 같은 객체로 인식하도록 해주고, 또한 Common 을 상속하고 있는데, 상위 클래스의 경우 적용시키지 않기 위해 callSuper=false로 해주었다.
+
+
+### @ToString 예제
+@ToString 어노테이션을 활용하면 클래스의 변수들을 기반으로 ToString 메소드를 자동으로 완성시켜 준다. 출력을 원하지 않는 변수에 @ToString.Exclude 어노테이션을 붙여주면 출력을 제외할 수 있다. 또한 상위 클래스에 대해도 toString을 적용시키고자 한다면 상위 클래스에 @ToString(callSuper = true) 를 적용시키면 된다. 
+
+```java
+@ToString
+public class Member extends Common{
+
+    @ToString.Exclude
+    private String id;    // id는 toString에서 제외
+    
+    private final String name;  // final 선언
+}
+```
+
+### @Builder 예제
+@Builder 어노테이션을 활용하면 해당 클래스의 객체의 생성에 Builder패턴을 적용시켜준다. 모든 변수들에 대해 build하기를 원한다면 클래스 위에 @Builder를 붙이면 되지만, 특정 변수만을 build하기 원한다면 생성자를 작성하고 그 위에 @Builder 어노테이션을 붙여주면 된다.
+
+```java
+@NoArgsContructor
+@Getter
+//@Builder  // 모든 변수를 초기화 하는 builder 생성시 클래스 레벨에 선언
+public class Member extends Common{
+
+    private String id;    
+    private String name;
+    private String phone;
+    
+    // 특정 변수만을 초기화 하려면 특정 생성자에 선언
+    @Builder
+    public Member(String id, String name){
+    	this.id = id;
+        this.name = name;
+    }
+    
+    /* 
+    @Builder 선언시 Lombok에 의해 빌더생성을 위한 다음의 코드가 생성됨.
+    public static Member.MemberBuilder builder() {
+        return new Member.MemberBuilder();
+    }
+
+    public static class MemberBuilder {
+        private String id;
+        private String name;
+
+        MemberBuilder() {
+        }
+
+        public Member.MemberBuilder id(final String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Member.MemberBuilder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Member build() {
+            return new Member(this.id, this.name);
+        }
+
+        public String toString() {
+            return "Member.MemberBuilder(id=" + this.id + ", name=" + this.name + ")";
+        }
+    }    
+    */
+}
+```
+
+
+## Lombok 실무 사용 예제
+
+### (예제) Entity에서 사용
+
+- @EqualsHashCode
+    : 상점 목록들 같은 경우 경기 공공데이터에서 제공받은 내용들에 동일한 상점 정보가 중복되어 들어간 경우가 있다. 그래서 상호명(compayName)과 도로명주소(roadAddr)가 같은 상점인 경우 같은 객체로 처리해주고 있다.
+    
+- @ToString
+    : regionMoneyName는 데이터가 비어있는 경우가 많기 때문에 @ToString 메소드에서 제외해주었다.
+    
+- @Builder
+    : 적절한 데이터를 사용하여 해당 클래스를 생성할 수 있다.
+
+```java
+@Entity
+@Table(name = "store")
+@ToString(exclude = "regionMoneyName", callSuper = true)
+@Getter
+@NoArgsConstructor
+@EqualsAndHashCode(of = {"companyName", "roadAddr"}, callSuper = false)
+public class Store extends Common {
+
+    private String companyName;                                 // 상호명
+    private String industryTypeCode;                            // 업종코드
+    private String businessCodeName;                            // 업태명
+    private String industryName;                                // 업종명(종목명)
+    private String telephone;                                   // 전화번호
+    private String regionMoneyName;                             // 사용가능한 지역화폐 명
+    private boolean isBmoneyPossible;                           // 지류형 지역화폐 사용가능 여부
+    private boolean isCardPossible;                             // 카드형 지역화폐 사용가능 여부
+    private boolean isMobilePossible;                           // 모바일형 지역화폐 사용가능 여부
+    private String lotnoAddr;                                   // 소재지 지번주소
+    private String roadAddr;                                    // 소재지 도로명주소
+    private String zipCode;                                     // 우편번호
+    private double longitude;                                   // 경도
+    private double latitude;                                    // 위도
+    private String sigunCode;                                   // 시군 코드
+    private String sigunName;                                   // 시군 이름
+
+    @Builder
+    public Store(String companyName, String industryTypeCode){
+        this.companyName = companyName;
+        this.industryTypeCode = industryTypeCode;
+    }
+    
+}
+```
+
+> 출처: [MangKyu's Diary:티스토리](https://mangkyu.tistory.com/78)
+
+
+
+### (예제) Service에서 사용
+
+- @RequiredArgsConstructor
+    : StoreRepository 필드가 **final로 선언**되어 있으므로 해당 생성자를 자동으로 생성해준다. 이를 통해 StoreService가 Spring Container에 Bean 등록이 될 때 StoreRepository를 주입시켜준다.[^2]
+
+
+[^2]: 생성자 주입은 의존성 주입(Dependency Injection)의 한 형태로, 스프링이 빈을 생성할 때 해당 빈의 생성자를 통해 의존성을 주입한다. 생성자 주입 이외에도 @Autowired 등의 방법이 있지만 스프링에서는 생성자 주입을 권고한다.
+
+```java
+@Service
+@RequiredArgsConstructor
+public class StoreService {
+
+    private final StoreRepository storeRepository;
+
+    public List<Store> findAll() {
+        return storeRepository.findAll();
+    }
+
+    public Store save(Store store) {
+        return storeRepository.save(store);
+    }
+
+    public Optional<Store> findById(Long id) {
+        return storeRepository.findById(id);
+    }
+    
+    public List<Store> findAllByCompanyName(String searchKeyWord) {
+        return storeRepository.findAllByCompanyNameLike(searchKeyWord);
+    }
+
+}
+```
+
+> 출처: [MangKyu's Diary:티스토리](https://mangkyu.tistory.com/78)
+
+
+
+
+## @ToString 무한 루프 주의
+---
+
+객체 간에 상호 참조관계가 있을 때, Lombok이 toString() 메서드를 자동 생성하면 무한 루프에 빠질 수 있어서 주의가 필요하다.
+
+이 문제를 해결하기 위해 `@ToString(exclude="fieldName")` 을 사용하여 특정 필드를 제외할 수 있다.
+
+
+- 예시 코드
+
+```java
+import lombok.ToString;
+
+@ToString
+public class Person {
+    private String name;
+    private Address address;
+}
+
+@ToString
+public class Address {
+    private String city;
+    private Person resident;
+}
+```
+
+이렇게 상호 참조된 두 객체가 있을 때, Person 객체를 출력하려고 하면 `toString()` 메서드에서 Address 객체를 출력하고, Address 객체를 출력하려고 하면 다시 Person 객체를 출력하려고 시도하면서 무한 루프에 빠질 수 있다.
+
+이런 상황에서는 다음과 같이 `@ToString(exclude="fieldName")`을 사용하여 무한 루프에 빠지지 않도록 특정 필드를 제외한다.
+
+```java
+import lombok.ToString;
+
+@ToString(exclude = "address")
+public class Person {
+    private String name;
+    private Address address;
+}
+
+@ToString(exclude = "resident")
+public class Address {
+    private String city;
+    private Person resident;
+}
+```
+
+
+- 예시 코드 출력
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Person person = new Person();
+        person.setName("John");
+
+        Address address = new Address();
+        address.setCity("New York");
+
+        person.setAddress(address);
+        address.setResident(person);
+
+        // ToString 메서드 출력
+        System.out.println(person);
+        System.out.println(address);
+    }
+}
+```
+
+> 출력 결과 :  
+> Person(name=John, address=Address(city=New York, resident=null))  
+> Address(city=New York, resident=Person(name=John, address=null))
+
+
+
+
+이렇게 상호참조 관계가 있는 객체 간에 `toString()`을 사용할 때는 주의해야 한다.
+
+
+
+
+## Lombok 적용법 및 의존성 추가
+---
+
+### IntelliJ
+구버전 IntelliJ 를 사용하고 있다면 Marketplace에서 Lombok 플러그인을 설치해주어야 한다.  
+현재는 IntelliJ의 기본 플러그인으로 설정되어 설치 시 바로 이용 가능하다.
+
+- Setting > Plugins > Lombok 검색 > 설치
+
+![Lombok 플러그인](/assets/img/posts/2024-02-03-22-40-53.png)
+
+- Setting > Build, Execution, Deployment > Compiler > Annotation Processors
+
+Enable annotation processing 체크
+
+![어노테이션 설정 세팅](/assets/img/posts/2024-02-03-23-01-44.png)
+
+### Maven 사용 시
+
+`pom.xml`에 다음과 같이 Dependency 추가
+(버전은 다를 수 있으니 확인. 예시 코드의 버전은 1.18.12)
+
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>1.18.12</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+### Gradle 사용 시
+
+`build.gradle`에 다음과 같이 Dependency 추가
+(버전은 다를 수 있으니 확인. 예시 코드의 버전은 1.18.12)
+
+
+```groovy
+// https://mvnrepository.com/artifact/org.projectlombok/lombok
+provided group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+```
+
+
+
+
+## References
+---
+- 공식 홈페이지 : [https://projectlombok.org/index.html](https://projectlombok.org/index.html)  
+- Reference Doc : [https://projectlombok.org/features/index.html](https://projectlombok.org/features/index.html)
+- [갓대희의 작은공간:티스토리 - 롬복 설치 및 설정](https://goddaehee.tistory.com/208)
+- [갓대희의 작은공간:티스토리 - 롬복 어노테이션](https://goddaehee.tistory.com/95)
+- [망나니 개발자 - Lombok 활용법](https://mangkyu.tistory.com/78)
+- [개발자 코딩 노트 - Lombok 사용법](https://phantom.tistory.com/63)

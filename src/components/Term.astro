@@ -1,0 +1,9 @@
+---
+interface Props {
+  definition: string;
+}
+---
+
+<span class="term" tabindex="0" data-definition={Astro.props.definition}>
+  <slot />
+</span>

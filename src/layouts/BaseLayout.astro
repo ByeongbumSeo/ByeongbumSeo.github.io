@@ -1,0 +1,116 @@
+---
+import "../styles/global.css";
+import { SITE } from "../lib/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+}
+
+const { title = SITE.title, description = SITE.description, image = "/assets/img/profile/profile.png" } = Astro.props;
+const pageTitle = title === SITE.title ? title : `${title} | ${SITE.title}`;
+const canonical = new URL(Astro.url.pathname, SITE.url).href;
+const imageUrl = new URL(image, SITE.url).href;
+const pathname = Astro.url.pathname;
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/tech/", label: "Tech" },
+  { href: "/notes/", label: "Notes" },
+  { href: "/diary/", label: "Diary" },
+  { href: "/about/", label: "About" }
+];
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.title} RSS`} href="/rss.xml" />
+    <link rel="icon" href="/assets/img/favicons/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/assets/img/favicons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 이동</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="site-brand" href="/">
+          <span class="site-brand__mark"><img src="/assets/img/profile/profile.png" alt="" /></span>
+          <span>
+            <strong>{SITE.title}</strong>
+            <small>생각과 배움을 기록합니다.</small>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          {
+            navItems.map((item) => (
+              <a href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="site-main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div>
+        <strong>{SITE.author}</strong>
+        <span>일하며 배우고 고민한 것을 천천히 기록합니다.</span>
+      </div>
+      <div class="site-footer__links">
+        <a href={SITE.github}>GitHub</a>
+        <a href={`mailto:${SITE.email}`}>Email</a>
+      </div>
+    </footer>
+    <script is:inline>
+      const closeTerms = () => {
+        document.querySelectorAll(".term[data-open='true']").forEach((term) => {
+          term.removeAttribute("data-open");
+        });
+      };
+
+      document.addEventListener("focusin", (event) => {
+        const term = event.target.closest?.(".term");
+        if (!term) return;
+        closeTerms();
+        term.setAttribute("data-open", "true");
+      });
+
+      document.addEventListener("focusout", (event) => {
+        const term = event.target.closest?.(".term");
+        term?.removeAttribute("data-open");
+      });
+
+      document.addEventListener("click", (event) => {
+        const term = event.target.closest?.(".term");
+        if (!term) {
+          closeTerms();
+          return;
+        }
+        closeTerms();
+        term.setAttribute("data-open", "true");
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeTerms();
+      });
+    </script>
+  </body>
+</html>

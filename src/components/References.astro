@@ -1,0 +1,23 @@
+---
+interface Reference {
+  title: string;
+  url: string;
+}
+
+interface Props {
+  references: Reference[];
+}
+---
+
+{
+  Astro.props.references.length > 0 && (
+    <section class="references" aria-labelledby="references-heading">
+      <h2 id="references-heading">Sources</h2>
+      <ol>
+        {Astro.props.references.map((reference) => (
+          <li><a href={reference.url}>{reference.title}</a></li>
+        ))}
+      </ol>
+    </section>
+  )
+}

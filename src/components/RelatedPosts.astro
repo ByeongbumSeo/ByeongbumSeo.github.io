@@ -1,0 +1,26 @@
+---
+import type { Post } from "../lib/posts";
+import { postUrl } from "../lib/posts";
+import { SECTION_LABELS } from "../lib/site";
+
+interface Props {
+  posts: Post[];
+}
+---
+
+{
+  Astro.props.posts.length > 0 && (
+    <section class="related-posts" aria-labelledby="related-posts-heading">
+      <h2 id="related-posts-heading">Related Posts</h2>
+      <div class="related-posts__grid">
+        {Astro.props.posts.map((post) => (
+          <a class="related-post" href={postUrl(post)}>
+            <span>{SECTION_LABELS[post.data.kind]}</span>
+            <strong>{post.data.title}</strong>
+            <small>{post.data.description}</small>
+          </a>
+        ))}
+      </div>
+    </section>
+  )
+}

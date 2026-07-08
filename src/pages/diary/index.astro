@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getKindPosts, getPublishedPosts } from "../../lib/posts";
+
+const posts = getKindPosts(await getPublishedPosts(), "diary");
+---
+
+<BaseLayout title="Diary" description="개발자로 성장하며 남긴 개인 기록과 커리어 고민입니다.">
+  <section class="page-heading">
+    <p class="eyebrow">Diary</p>
+    <h1>Diary</h1>
+    <p>기술 밖의 고민, 성장 과정, 일하며 느낀 것을 남기는 공간입니다.</p>
+  </section>
+  <PostList posts={posts} />
+</BaseLayout>

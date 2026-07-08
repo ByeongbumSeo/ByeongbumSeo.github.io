@@ -1,0 +1,23 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getPublishedPosts, getSeriesGroups } from "../../lib/posts";
+
+export async function getStaticPaths() {
+  const groups = getSeriesGroups(await getPublishedPosts());
+  return [...groups.entries()].map(([slug, group]) => ({
+    params: { slug },
+    props: { slug, group }
+  }));
+}
+
+const { group } = Astro.props;
+---
+
+<BaseLayout title={`Series: ${group.title}`} description={`${group.title} 시리즈 글 목록입니다.`}>
+  <section class="page-heading">
+    <p class="eyebrow">Series</p>
+    <h1>{group.title}</h1>
+  </section>
+  <PostList posts={group.posts} />
+</BaseLayout>

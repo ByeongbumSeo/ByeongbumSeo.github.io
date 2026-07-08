@@ -1,29 +1,29 @@
 {
-  "name": "jekyll-theme-chirpy",
-  "version": "5.5.2",
-  "description": "A minimal, responsive and feature-rich Jekyll theme for technical writing.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cotes2020/jekyll-theme-chirpy.git"
-  },
-  "author": "Cotes Chung",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/cotes2020/jekyll-theme-chirpy/issues"
-  },
-  "homepage": "https://github.com/cotes2020/jekyll-theme-chirpy#readme",
+  "name": "byeongbumseo.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "npx stylelint _sass/**/*.scss",
-    "fixlint": "npx stylelint _sass/**/*.scss --fix"
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1",
+    "astro": "astro",
+    "check:astro": "astro check",
+    "check:content": "node scripts/check-content.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:legacy": "node scripts/check-legacy.mjs",
+    "check:dist": "node scripts/check-dist.mjs",
+    "check": "npm run check:astro && npm run check:content && npm run check:links && npm run check:legacy"
+  },
+  "dependencies": {
+    "@astrojs/markdown-remark": "^7.2.1",
+    "@astrojs/mdx": "^7.0.2",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^7.0.6"
   },
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-concat": "^2.6.1",
-    "gulp-insert": "^0.5.0",
-    "gulp-rename": "^2.0.0",
-    "gulp-uglify": "^3.0.2",
-    "stylelint": "^14.14.0",
-    "stylelint-config-standard-scss": "^5.0.0",
-    "uglify-js": "^3.14.3"
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^5.9.2"
   }
 }
