@@ -4,6 +4,7 @@ slug: "http-cache-revalidation"
 description: "max-age 이후 ETag와 If-None-Match로 캐시를 재검증하는 흐름과 Spring·URLSession에서 304가 다르게 보이는 이유를 다룬다."
 kind: "tech"
 publishedAt: "2025-05-03"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -113,13 +114,13 @@ MacBook에서 Spring 서버를 로컬로 실행하고, 같은 Wi-Fi에 연결한
 
 이 수치는 특정 응답을 한 차례 측정한 결과다. 모든 API에서 같은 비율로 줄어든다는 뜻은 아니다.
 
-![Wireshark에서 확인한 HTTP 200 응답 헤더. Content-Length가 포함되어 있다.](/assets/img/posts/etag-304-study-200.png)
+![Wireshark에서 확인한 HTTP 200 응답 헤더. ETag와 Content-Length 14196이 포함되어 있다.](/assets/img/posts/etag-304-study-200.png)
 
-*200 응답 캡처. 날짜·ETag·본문 크기는 가렸으며, `Content-Length` 헤더가 포함되어 있다.*
+*200 응답 캡처. ETag와 `Content-Length: 14196`을 확인할 수 있다.*
 
-![Wireshark에서 확인한 HTTP 304 응답 헤더. 캡처 당시 Content-Length가 없었다.](/assets/img/posts/etag-304-study-304.png)
+![Wireshark에서 확인한 HTTP 304 응답 헤더. 200 응답과 같은 ETag가 있고 Content-Length는 없다.](/assets/img/posts/etag-304-study-304.png)
 
-*304 응답 캡처. 같은 ETag의 실제 값과 날짜는 가렸으며, 이 캡처에는 `Content-Length`가 없었다.*
+*304 응답 캡처. 200 응답과 같은 ETag가 있고, `Content-Length`는 없다.*
 
 요청의 `If-None-Match`와 두 응답의 ETag가 같다는 것, 그리고 실제 네트워크 응답이 304라는 것을 함께 확인했다. RFC상 304에는 응답 본문이 없다. 다만 304에 `Content-Length` 헤더가 반드시 없어야 하는 것은 아니다. 이번 캡처에서 없었다는 관측과 HTTP 규칙은 구분해야 한다.
 
