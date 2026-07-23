@@ -1,9 +1,10 @@
 ---
-title: "필터에서 401을 설정했는데 요청은 계속 흘렀다"
+title: "Spring Security 필터에서 401 뒤 요청 체인을 종료해야 하는 이유"
 slug: "security-filter-response-commit"
-description: "Spring Security 커스텀 필터에서 거절 응답 뒤 체인을 종료하지 않아 401이 200으로 바뀐 이유와, 오버로드된 응답 헬퍼가 분석을 어렵게 만든 과정을 정리한다."
+description: "setStatus나 sendError가 필터 실행을 끝내지 않는다는 점과 오버로드된 헬퍼의 실제 호출을 추적해, 거절 뒤 return이 필요한 이유를 설명한다."
 kind: "tech"
 publishedAt: "2026-01-06"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -24,7 +25,7 @@ references:
 
 커스텀 인증 필터를 점검하다가 이상한 분기를 발견했다. 특정 시점보다 오래된 인증 토큰은 다시 인증하도록 막는 코드였는데, 거절 조건에 들어가도 뒤의 토큰 검증과 컨트롤러가 그대로 실행됐다. 로컬에서 재현해 보니 차단하려던 요청이 최종적으로 `200 OK`를 받았다.
 
-공개용 예시로 줄이면 흐름은 이랬다.
+흐름은 이랬다.
 
 ```java
 if (requiresReauthentication(tokenIssuedAt)) {
@@ -89,21 +90,7 @@ static void unauthorized(HttpServletResponse response) {
 
 이는 런타임 객체를 보고 임의로 고르는 동적 분기가 아니다. Java 컴파일러는 호출 지점에서 적용 가능한 메서드 가운데 가장 구체적인 메서드를 선택한다. 같은 객체라도 변수의 선언 타입이 `ServletResponse`인 테스트 코드에서는 다른 오버로드가 호출될 수 있다.
 
-변경 이력까지 확인하니 두 문제가 생긴 순서도 구분됐다.
-
-```text
-처음: 두 오버로드 모두 sendError 사용
-  ↓
-필터의 일부 거절 분기에 return이 없는 상태로 사용
-  ↓
-다른 응답 오류를 고치며 HttpServletResponse 오버로드만 setStatus로 변경
-  ↓
-호출부는 그대로지만 해당 분기가 더 이상 응답을 commit하지 않음
-  ↓
-뒤 로직이 응답을 바꾸는 현상이 선명하게 드러남
-```
-
-오버로딩이 필터를 계속 실행시킨 근본 원인은 아니었다. `filterChain.doFilter()`에 도달할 수 있게 둔 제어 흐름이 먼저 잘못되어 있었다. 다만 이름이 같은 두 메서드가 서로 다른 응답 생명주기를 갖고 있어, 호출부를 읽을 때와 테스트할 때 실제 부수 효과를 오판하기 쉬웠다.
+오버로딩이 필터를 계속 실행시킨 원인은 아니었다. `filterChain.doFilter()`에 도달할 수 있게 둔 제어 흐름이 먼저 잘못됐다. 다만 이름이 같은 두 메서드가 서로 다른 응답 생명주기를 가져 실제 부수 효과를 오판하기 쉬웠다.
 
 ## setStatus와 sendError도, return과는 역할이 다르다
 
@@ -117,7 +104,7 @@ Jakarta Servlet API에서 두 메서드의 계약은 분명히 다르다.
 
 `sendError`를 호출하면 응답을 더 쓰지 않아야 한다. 그렇다고 Java가 다음 줄을 건너뛰는 것은 아니다. 뒤에서 체인을 호출하면 commit된 응답에 다시 쓰려다 예외가 나거나, 컨테이너와 래퍼에 따라 후속 출력이 무시되는 식의 또 다른 문제가 생길 수 있다.
 
-따라서 수정안은 `setStatus`를 `sendError`로 바꾸는 데서 끝나지 않는다. 거절 응답을 이 필터가 소유한다면 응답을 만든 직후 명시적으로 반환해야 한다. 아래 코드는 적용 결과가 아니라, 분석한 제어 흐름을 끊기 위한 수정안이다.
+**필터가 거절 응답을 직접 쓴다면 응답을 만든 직후 `return`해야 한다.** `setStatus`를 `sendError`로 바꾸는 것만으로는 제어 흐름이 끝나지 않는다.
 
 ```java
 if (requiresReauthentication(tokenIssuedAt)) {
@@ -138,13 +125,9 @@ JSON 오류 본문을 직접 쓴다면 `setStatus`, content type, body 작성을
 
 ## 빈 AuthenticationEntryPoint는 별도의 문제였다
 
-점검 중에는 잘못된 토큰을 보냈을 때 `200 OK`와 빈 본문이 오는 경로도 발견했다. 처음에는 모두 `return` 누락 때문으로 보였지만 이 경로의 원인은 달랐다.
+점검 중에는 잘못된 토큰에 `200 OK`와 빈 본문이 오는 다른 경로도 발견했다. 등록된 `AuthenticationEntryPoint#commence()`가 비어 있어 상태·헤더·본문을 아무것도 만들지 않은 경우였다.
 
-Spring Security의 `AuthenticationEntryPoint`는 인증되지 않은 요청에 대해 인증 절차를 시작하도록 응답을 수정하는 역할을 한다. 그런데 등록된 구현의 `commence()`가 비어 있으면 이 지점에서는 상태도, 헤더도, 본문도 만들지 않는다.
-
-앞선 커스텀 필터가 이미 401을 설정한 요청에서는 빈 entry point가 아무 일도 하지 않아 401이 남을 수 있다. 반대로 미리 설정된 상태가 없는 요청이라면 기본 상태인 200과 빈 본문이 관찰될 수 있다. 같은 최종 증상처럼 보여도 응답을 최종으로 책임진 경로가 다르다.
-
-이 경로는 앞선 필터의 `return` 누락과 별도로 고쳐야 한다. 커스텀 필터는 거절 응답을 쓴 뒤 반환하고, entry point는 앞에서 설정된 상태가 없더라도 스스로 401 응답을 완성하도록 책임을 나누는 수정안이 필요하다.
+이 문제는 `return` 누락과 별도로 고쳐야 했다. 커스텀 필터는 거절 응답을 쓴 뒤 반환하고, entry point는 앞에서 설정된 상태가 없어도 스스로 401 응답을 완성해야 한다.
 
 ## 상태 코드만 확인하는 테스트로는 부족했다
 
@@ -159,7 +142,7 @@ assertThat(response.getStatus()).isEqualTo(401);
 verifyNoInteractions(filterChain);
 ```
 
-실제 테스트 코드에서는 사용하는 mock 방식에 맞춰 `filterChain.doFilter()`가 호출되지 않았음을 검증하면 된다. 통합 테스트에서는 보호된 컨트롤러에 도달하지 않았는지, 거절 뒤 `SecurityContext`에 인증이 생기지 않았는지도 확인한다. `SecurityContextHolder`가 ThreadLocal을 사용하므로 테스트 사이에는 context를 지워 앞선 인증이 다음 케이스에 남지 않게 한다. entry point 단위 테스트는 상태 코드뿐 아니라 헤더와 본문도 함께 확인한다.
+단위 테스트에서는 `filterChain.doFilter()` 미호출과 비어 있는 `SecurityContext`를 함께 확인한다. 통합 테스트에서는 보호된 컨트롤러에 도달하지 않았는지 보고, entry point 테스트에서는 상태 코드뿐 아니라 헤더와 본문도 확인한다. `SecurityContextHolder`는 테스트 사이에 비워야 한다.
 
 특히 이 사례처럼 거절 조건과 일반 토큰 검증이 따로 있다면 다음 조합을 고정해야 한다.
 
@@ -170,4 +153,4 @@ verifyNoInteractions(filterChain);
 
 실패 뒤의 검증이 성공하는 첫 번째 조합이 빠지면, 우연히 정상인 두 번째 조합만 보고 수정됐다고 판단하기 쉽다.
 
-필터에서 응답 상태를 정하는 코드가 보이면 그 다음 질문은 “이 응답이 commit되는가?”만이 아니다. “이 줄 이후에도 누가 실행되는가?”를 함께 물어야 한다. 보안 분기의 종료 조건은 상태 코드가 아니라 제어 흐름으로 보장해야 한다.
+**필터에서 상태 코드를 정했다면, 그다음에 누가 실행되는지도 확인해야 한다. 보안 분기의 종료는 응답 코드가 아니라 제어 흐름으로 보장한다.**

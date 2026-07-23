@@ -1,9 +1,10 @@
 ---
-title: "릴리즈 PR을 도입했더니 브랜치 그래프가 갈라졌다"
+title: "릴리즈 PR 뒤 갈라진 Git 브랜치를 tree 해시로 수렴하기"
 slug: "git-merge-divergence"
-description: "코드는 같은데 커밋이 다른 릴리즈 브랜치를 tree 해시로 진단하고 force push 없이 fast-forward로 수렴시킨 과정을 정리한다."
+description: "tree는 같지만 부모 이력이 다른 환경 브랜치를 진단하고, 공유 이력을 force push 없이 --ff-only로 한 지점에 모은 방법을 설명한다."
 kind: "tech"
 publishedAt: "2026-07-03"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -56,7 +57,7 @@ git rev-parse origin/main^{tree}
 | commit 해시가 같다 | 내용과 이력 메타데이터까지 같은 커밋이다 |
 | tree 해시가 같다 | 그 시점의 파일·디렉터리 내용이 같다 |
 
-이 저장소는 “코드는 같지만 이력은 다른” 상태였다.
+**이 저장소는 코드는 같지만 이력은 다른 상태였다.**
 
 ## 최초의 merge commit이 다음 fast-forward를 막았다
 
@@ -124,4 +125,4 @@ git push origin develop
 
 핫픽스를 환경 브랜치에 직접 넣으면 이 전제가 다시 깨진다. 핫픽스도 먼저 공통 개발 브랜치에 반영하거나, 반영 직후 모든 브랜치를 같은 커밋으로 수렴시키는 절차가 필요하다.
 
-이번 문제에서 가장 유용했던 구분은 “같다”의 의미였다. 배포 산출물만 비교하려면 tree나 `git diff`를 보고, 이력까지 한 줄로 유지하려면 commit의 조상 관계를 봐야 한다. 둘을 섞으면 코드가 같은데 왜 브랜치가 다르냐는 질문에서 오래 헤매게 된다.
+**배포 산출물을 비교할 때는 tree나 `git diff`를 보고, 이력을 한 줄로 유지하려면 commit의 조상 관계를 봐야 한다.** 둘을 섞으면 코드가 같은데 왜 브랜치가 다르냐는 질문에서 오래 헤매게 된다.

@@ -1,9 +1,10 @@
 ---
-title: "서로 기다리다 아무도 못 움직이는 상황 — Java와 DB의 Deadlock"
+title: "Java와 InnoDB 데드락에서 잠금 순서를 통일해야 하는 이유"
 slug: "java-db-deadlock"
-description: "Java 스레드와 InnoDB 트랜잭션에서 같은 순환 대기가 어떻게 생기고, 감지와 복구 방식은 왜 다른지 비교한다."
+description: "Java 스레드와 InnoDB 트랜잭션에서 잠금 순서가 엇갈릴 때 생기는 deadlock과 예방·복구 방법을 비교한다."
 kind: "tech"
 publishedAt: "2026-04-03"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -28,7 +29,7 @@ references:
     url: "https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstack.html"
 ---
 
-락을 써서 공유 데이터를 안전하게 만들고 나면 다음 문제가 생긴다. 여러 락을 어떤 순서로 잡을지 정하지 않으면, 안전해진 두 작업이 서로를 영원히 기다릴 수 있다.
+여러 잠금을 쓰는 코드는 획득 순서까지 정해야 한다. 경로마다 순서가 다르면 두 작업이 서로를 계속 기다릴 수 있다.
 
 ```text
 Thread A                    Thread B
@@ -39,11 +40,11 @@ Lock Y 요청 → 대기          Lock X 요청 → 대기
 
 A는 B가 가진 Y를 기다리고, B는 A가 가진 X를 기다린다. 둘 다 기다리는 동안 자신이 가진 락을 놓지 않는다. 이 순환 대기가 deadlock이다.
 
-Java 모니터와 DB 행 잠금은 전혀 다른 도구처럼 보이지만, 교착 상태를 만드는 구조는 같았다. 차이는 교착을 발견한 뒤 누가 무엇을 포기하느냐에 있었다.
+Java 모니터와 DB 행 잠금은 도구는 다르지만 deadlock을 만드는 구조는 같다. 발견한 뒤의 복구 방식만 다르다.
 
 ## 네 조건이 모두 모이면 교착이 생긴다
 
-Coffman 등이 정리한 네 가지 필요조건은 다음과 같다.
+Deadlock이 생기려면 다음 네 조건이 동시에 성립해야 한다.[^coffman]
 
 | 조건 | 의미 |
 |---|---|
@@ -52,7 +53,7 @@ Coffman 등이 정리한 네 가지 필요조건은 다음과 같다.
 | 비선점 | 다른 작업의 자원을 강제로 빼앗을 수 없다 |
 | 순환 대기 | 작업들이 원형으로 서로의 자원을 기다린다 |
 
-네 가지가 모두 성립해야 deadlock이 가능하다. 방지 전략은 결국 이 중 하나를 깨는 일이다. 실무에서 가장 단순한 방법은 여러 자원의 획득 순서를 통일해 순환 대기를 없애는 것이다.
+실무에서 가장 단순한 예방책은 여러 자원의 획득 순서를 통일해 순환 대기를 없애는 것이다.
 
 ## Java에서 역순으로 락을 잡아봤다
 
@@ -145,7 +146,7 @@ public boolean tryWork() throws InterruptedException {
 }
 ```
 
-재시도한다면 즉시 같은 타이밍으로 다시 충돌하지 않도록 제한 횟수와 backoff를 함께 설계해야 한다. 무한 재시도는 deadlock을 livelock이나 과도한 CPU 사용으로 바꿀 뿐이다.
+재시도한다면 같은 타이밍에 다시 충돌하지 않도록 횟수를 제한하고 지연 시간을 둬야 한다. 무한 재시도는 작업을 끝내지 못한 채 CPU만 쓰는 반복으로 이어질 수 있다.
 
 ## Java deadlock은 어떻게 찾나
 
@@ -167,7 +168,7 @@ Found one Java-level deadlock:
   which is held by "worker-1"
 ```
 
-애플리케이션 안에서는 `ThreadMXBean.findDeadlockedThreads()`로 monitor와 ownable synchronizer의 교착 스레드를 찾을 수 있다. 하지만 탐지는 복구와 다르다. JVM이 임의의 스레드를 죽이거나 이미 수행한 상태 변경을 되돌려주지는 않는다.
+애플리케이션 안에서도 deadlock에 빠진 스레드를 찾을 수 있다.[^thread-mxbean] 하지만 탐지는 복구와 다르다. JVM이 임의의 스레드를 죽이거나 이미 수행한 상태 변경을 되돌려주지는 않는다.
 
 ## DB에서도 같은 순환이 생긴다
 
@@ -198,20 +199,20 @@ UPDATE accounts SET balance = balance + 200 WHERE id = 1;
 
 ## InnoDB는 한 트랜잭션을 희생시킨다
 
-`innodb_deadlock_detect`가 활성화되어 있으면 InnoDB는 잠금 대기 관계에서 순환을 찾고, 한 트랜잭션을 victim으로 골라 롤백한다.
+`innodb_deadlock_detect`가 활성화되어 있으면 InnoDB는 잠금 대기 관계에서 순환을 찾고, 한 트랜잭션을 골라 롤백한다.
 
 ```text
 ERROR 1213 (40001):
 Deadlock found when trying to get lock; try restarting transaction
 ```
 
-Java의 `synchronized` deadlock과 달리 DB는 하나를 포기시켜 나머지가 진행하게 한다. 비선점 조건을 깨는 셈이다. 다만 애플리케이션 입장에서 실패가 사라진 것은 아니다. 롤백된 요청은 재시도하거나 사용자에게 실패를 알려야 한다.
+**InnoDB가 한 트랜잭션을 자동으로 롤백해도 요청이 성공한 것은 아니므로, 호출자는 트랜잭션 전체를 안전하게 재시도해야 한다.**
 
 재시도에는 몇 가지 조건이 붙는다.
 
 - 트랜잭션 전체를 처음부터 다시 실행해야 한다.
 - 외부 API 호출이나 메시지 발행 같은 부수 효과가 이미 나갔다면 무작정 재시도하면 안 된다.
-- 횟수 제한과 jitter를 둔다.
+- 횟수를 제한하고 무작위 지연을 둔다.
 - 먼저 잠금 순서를 고쳐 재발 확률을 줄인다.
 
 deadlock detection을 끈 환경에서는 즉시 순환을 끊지 못하고 lock wait timeout까지 기다릴 수 있다. 감지에도 비용이 있으므로 고경합 환경에서는 설정과 증상을 함께 봐야 한다.
@@ -252,9 +253,13 @@ SHOW ENGINE INNODB STATUS;
 | 경쟁 단위 | 스레드 | 트랜잭션 |
 | 잠금 대상 | 모니터, `Lock` 객체 | 인덱스 레코드와 범위 |
 | 감지 | thread dump 또는 `ThreadMXBean` | 대기 그래프를 감지 |
-| 자동 복구 | 없음 | victim 트랜잭션 롤백 |
+| 자동 복구 | 없음 | 선택된 트랜잭션 롤백 |
 | 호출자 책임 | 원인 제거 | 원인 제거 + 롤백 재시도 정책 |
 
-둘의 공통점이 더 중요하다. 여러 자원을 잠그면서 획득 순서를 일관되게 정하지 않으면 순환이 생긴다. DB가 자동 롤백해준다고 해서 deadlock이 정상 상태가 되는 것도 아니다. 사용자는 실패를 보고, 재시도는 비용을 만들며, 같은 순서가 반복되면 계속 같은 트랜잭션이 희생될 수 있다.
+여러 자원을 잠그면서 획득 순서를 일관되게 정하지 않으면 Java와 DB 모두 순환 대기가 생긴다. DB가 자동 롤백하더라도 사용자는 실패를 보고 재시도 비용도 생긴다.
 
-내가 가장 먼저 적용할 방어는 Java와 DB 모두 같다. **잠금 대상을 정렬하고 모든 경로에서 같은 순서로 접근한다.** timeout과 재시도는 그 규칙을 지키고도 남는 경쟁을 다루는 다음 단계다.
+**잠금 대상을 정렬하고 모든 경로에서 같은 순서로 접근하는 것이 첫 번째 예방책이다.** timeout과 재시도는 그 규칙을 지키고도 남는 경쟁을 다루는 다음 단계다.
+
+[^coffman]: 이 네 조건은 Coffman, Elphick, Shoshani가 1971년 논문에서 정리한 deadlock의 필요조건이다.
+
+[^thread-mxbean]: Java에서는 `ThreadMXBean.findDeadlockedThreads()`로 모니터와 ownable synchronizer의 deadlock을 찾을 수 있다.

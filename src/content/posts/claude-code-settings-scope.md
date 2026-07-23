@@ -1,9 +1,10 @@
 ---
-title: "Claude Code의 설정 레벨 — User, Project, Local은 뭐가 다를까?"
+title: "Claude Code 설정 범위 — User·Project·Local·Managed 비교"
 slug: "claude-code-settings-scope"
-description: "Claude Code 설정을 User, Project, Local, Managed 범위로 나누고 플러그인·스킬·Hook을 어디에 둘지 정리한다."
+description: "개인 공통 설정, 저장소 공유 설정, 로컬 실험과 조직 정책을 플러그인·스킬·Hook의 사용 대상에 따라 배치하는 기준을 제시한다."
 kind: "note"
 publishedAt: "2026-04-06"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -20,37 +21,20 @@ references:
     url: "https://code.claude.com/docs/en/hooks"
 ---
 
-Claude Code 플러그인을 설치할 때 범위를 고르는 화면을 보고 매번 잠깐 멈췄다.
-
-```text
-User     모든 프로젝트에서 나만
-Project  이 저장소를 쓰는 사람과 공유
-Local    이 저장소에서 나만
-```
-
-스킬과 Hook을 만들 때도 같은 질문이 생겼다. `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json` 중 어디에 둬야 할까?
+Claude Code 플러그인, 스킬, Hook을 설정할 때마다 `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json` 중 어디에 둘지 잠깐 멈췄다.
 
 아래 내용은 원본을 작성한 2026년 4월의 공식 문서를 기준으로 정리한 것이다.
 
 ## 네 가지 범위
-
-```text
-Managed  조직이 배포하는 강제 정책
-User     내 모든 프로젝트
-Project  저장소에 커밋해 공유
-Local    특정 저장소에서 나만
-```
-
-일상적으로 직접 다룬 것은 User, Project, Local 세 가지였다. Managed는 조직이 정책을 배포하는 환경에서 사용됐다.
 
 | 범위 | 대표 경로 | Git 공유 | 용도 |
 |---|---|---:|---|
 | User | `~/.claude/settings.json` | X | 내 공통 설정 |
 | Project | `.claude/settings.json` | O | 저장소의 공통 설정 |
 | Local | `.claude/settings.local.json` | X | 저장소별 개인 설정 |
-| Managed | OS별 관리 경로 | 조직 배포 | 강제 정책 |
+| Managed | OS별 관리 경로 | 조직 배포 | 조직이 강제하는 정책 |
 
-당시 일반 설정의 우선순위는 `Managed > CLI 인수 > Local > Project > User`였다. 권한처럼 여러 범위의 규칙을 합치는 항목도 있으므로, 모든 설정을 단순한 덮어쓰기로 이해하면 안 됐다.
+설정마다 병합 방식이 같지는 않다.[^settings-precedence]
 
 ## 플러그인은 누가 써야 하는지로 정한다
 
@@ -137,13 +121,6 @@ Hook은 각 범위의 `settings.json`에 둘 수 있다.
 └── .mcp.json
 ```
 
-세부 경로는 버전에 따라 바뀔 수 있지만 판단 질문은 단순했다.
+세부 경로는 버전에 따라 바뀔 수 있다. **파일 경로를 외우기 전에 누가 어떤 저장소에서 써야 하는지 정하면 범위는 자연스럽게 따라온다.**
 
-```text
-팀과 공유해야 한다        → Project
-나만 쓰고 모든 프로젝트다 → User
-나만 쓰고 이 저장소뿐이다 → Local
-조직이 강제해야 한다      → Managed
-```
-
-설정을 어디에 둘지 헷갈렸던 이유는 파일이 많아서가 아니라 사용 대상을 먼저 정하지 않았기 때문이었다. 범위부터 정하면 경로는 따라왔다.
+[^settings-precedence]: 2026년 4월 당시 일반 설정의 우선순위는 `Managed > CLI 인수 > Local > Project > User`였다. 권한처럼 여러 범위의 규칙을 합치는 항목도 있어 모든 설정이 단순히 덮어써지는 것은 아니다.

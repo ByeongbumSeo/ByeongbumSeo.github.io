@@ -758,6 +758,17 @@ pre code {
     font-size: 16.5px;
   }
 
+  .term::after {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    box-sizing: border-box;
+    width: auto;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
   .site-header__inner,
   .site-footer,
   .site-main {

@@ -1,9 +1,10 @@
 ---
 title: "MySQL 잠금 대기, 무엇부터 확인할까 — InnoDB 진단 가이드"
 slug: "database-locking-guide"
-description: "S/X-lock 표를 외우는 데서 멈추지 않고, MySQL 8.4에서 대기 관계와 트랜잭션 경계, 잠긴 인덱스 범위를 확인하는 순서를 정리한다."
+description: "sys.innodb_lock_waits, INNODB_TRX, 실행 계획을 연결해 waiter·blocker·잠긴 인덱스와 트랜잭션 시간을 찾는 순서를 제시한다."
 kind: "tech"
 publishedAt: "2026-01-20"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -39,13 +40,13 @@ references:
 - 한 행을 바꾸는 SQL이 왜 넓은 범위를 잠갔는가?
 - 오류가 난 뒤 트랜잭션 전체가 롤백됐는가?
 
-잠금 문제는 "이 SQL이 X-lock을 건다"에서 끝나지 않는다. **대기 관계, 실행 계획, 트랜잭션 경계**를 함께 봐야 원인을 설명할 수 있다. 이 글은 MySQL 8.4와 InnoDB를 기준으로 그 확인 순서를 정리한 기록이다.
+잠금 대기는 기다리는 세션, 막는 세션, 실제 인덱스와 트랜잭션 시작 시각을 함께 봐야 원인을 찾을 수 있다. 이 글은 MySQL 8.4와 InnoDB를 기준으로 그 확인 순서를 정리한다.
 
 ## 이 글에서 전제로 두는 잠금 범위
 
-앞선 시리즈 글에서는 S/X-lock과 consistent read, MVCC의 관계를 다뤘다. 여기서는 진단에 필요한 경계만 전제로 둔다. `SELECT ... FOR SHARE`와 `SELECT ... FOR UPDATE`는 locking read이고, `UPDATE`와 `DELETE`도 대상 인덱스 레코드에 잠금을 요구한다. 반면 `READ COMMITTED`와 `REPEATABLE READ`의 일반 SELECT는 보통 MVCC 버전을 읽는 consistent nonlocking read다.
+`SELECT ... FOR SHARE`와 `SELECT ... FOR UPDATE`는 locking read이고, `UPDATE`와 `DELETE`도 대상 인덱스 레코드에 잠금을 요구한다. 반면 `READ COMMITTED`와 `REPEATABLE READ`의 일반 SELECT는 보통 MVCC 버전을 읽는 consistent nonlocking read다.
 
-이 글이 다루는 중심은 InnoDB의 record·gap·next-key lock이다. `SERIALIZABLE`의 읽기와 metadata lock처럼 별도 규칙을 가진 대기는 같은 증상으로 보일 수 있으므로, 모든 SELECT가 잠기거나 잠기지 않는다는 식으로 넓혀 해석하지 않는다.
+여기서는 InnoDB의 record·gap·next-key lock을 다룬다. `SERIALIZABLE`의 읽기와 metadata lock처럼 별도 규칙을 가진 대기는 같은 증상으로 보일 수 있으므로, 모든 SELECT가 잠기거나 잠기지 않는다고 일반화하지 않는다.
 
 ## 1단계: 느린 쿼리인지 잠금 대기인지 구분한다
 
@@ -108,7 +109,7 @@ ORDER BY trx_started;
 
 ## 2단계: 무엇을 잠갔는지 인덱스 기준으로 본다
 
-InnoDB의 "행 잠금"은 논리적인 행 이름보다 **스캔한 인덱스 레코드**에 가깝다. locking read, UPDATE, DELETE는 문장을 처리하며 스캔한 인덱스 레코드에 일반적으로 잠금을 설정한다.
+InnoDB의 "행 잠금"은 논리적인 행 이름보다 스캔한 인덱스 레코드에 가깝다. locking read, UPDATE, DELETE는 문장을 처리하며 스캔한 인덱스 레코드에 일반적으로 잠금을 설정한다.
 
 예를 들어 한 행을 바꾸는 조건이라도 검색 컬럼에 적절한 인덱스가 없어 전체 테이블을 스캔하면 모든 행이 잠길 수 있다. WHERE 절의 최종 결과 행 수와 잠금을 얻기 위해 읽은 레코드 수는 같은 개념이 아니다.
 
@@ -146,11 +147,13 @@ SELECT *
 FROM performance_schema.data_lock_waits;
 ```
 
-예전 가이드에서 자주 보이는 `INFORMATION_SCHEMA.INNODB_LOCKS`와 `INNODB_LOCK_WAITS`는 MySQL 8.0.1에서 제거됐다. MySQL 8.x에서는 `performance_schema.data_locks`, `data_lock_waits` 또는 이를 읽기 쉽게 정리한 `sys.innodb_lock_waits`를 사용한다.
+MySQL 8.x에서는 `performance_schema.data_locks`, `data_lock_waits` 또는 이를 읽기 쉽게 정리한 `sys.innodb_lock_waits`를 사용한다.[^legacy-lock-views]
 
 운영 결과를 공유할 때는 `LOCK_DATA`와 쿼리에 실제 키 값이나 업무 데이터가 들어갈 수 있다는 점도 주의해야 한다.
 
-범위 잠금은 SQL 모양만 보고 단정하지 않는다. `REPEATABLE READ`의 범위 인덱스 스캔에서는 next-key lock이 사용될 수 있고, 유니크 인덱스의 완전한 동등 조건은 보통 해당 레코드만 잠근다. `READ COMMITTED`에서는 검색과 인덱스 스캔의 gap locking이 대부분 비활성화되지만 외래 키와 중복 키 검사 같은 예외가 남는다. 진단할 때는 다음 네 가지를 한 묶음으로 기록한다.
+범위 잠금은 SQL 모양만 보고 단정하지 않는다. `REPEATABLE READ`의 범위 인덱스 스캔에서는 next-key lock이 사용될 수 있고, 유니크 인덱스의 완전한 동등 조건은 보통 해당 레코드만 잠근다.
+
+`READ COMMITTED`에서는 검색과 인덱스 스캔의 gap locking이 대부분 비활성화되지만 외래 키와 중복 키 검사 같은 예외가 남는다. 진단할 때는 다음 네 가지를 한 묶음으로 기록한다.
 
 - 격리 수준
 - 실제 선택된 인덱스
@@ -159,9 +162,11 @@ FROM performance_schema.data_lock_waits;
 
 ## 3단계: 쿼리 시간이 아니라 트랜잭션 시간을 본다
 
-UPDATE가 빨리 끝나도 그 문장이 얻은 잠금은 일반적으로 COMMIT이나 ROLLBACK까지 유지된다. 트랜잭션 안의 외부 호출이나 긴 계산이 이어지면 잠금도 그 시간만큼 길어진다. 이때 튜닝 대상은 SQL 한 문장의 실행 시간보다 첫 DML부터 COMMIT까지의 구간이다. `INNODB_TRX.trx_started`와 애플리케이션 로그를 맞춰 열린 트랜잭션, 예외를 잡고 종료하지 않은 경로, 불필요하게 큰 변경 단위를 찾는다.
+UPDATE가 빨리 끝나도 그 문장이 얻은 잠금은 일반적으로 COMMIT이나 ROLLBACK까지 유지된다. 트랜잭션 안의 외부 호출이나 긴 계산이 이어지면 잠금도 그 시간만큼 길어진다.
 
-외부 호출을 무조건 트랜잭션 밖으로 옮기는 것도 답은 아니다. DB 변경과 부수 효과 사이에 필요한 일관성을 먼저 정하고, 트랜잭션 안에 꼭 함께 보장할 일만 남기거나 outbox 같은 전달 전략을 검토한다.
+따라서 SQL 한 문장보다 첫 DML부터 COMMIT까지 걸린 시간을 본다. `INNODB_TRX.trx_started`와 애플리케이션 로그를 맞춰 열린 트랜잭션, 예외를 잡고 종료하지 않은 경로, 불필요하게 큰 변경 단위를 찾는다.
+
+외부 호출을 무조건 트랜잭션 밖으로 옮기는 것도 답은 아니다. DB 변경과 외부 작업 사이에 필요한 일관성을 먼저 정한다. 트랜잭션 안에는 함께 성공해야 할 일만 남기거나, DB 변경과 발행할 메시지를 함께 기록한 뒤 전달하는 방식을 검토한다.
 
 ## 4단계: timeout과 deadlock을 같은 실패로 처리하지 않는다
 
@@ -172,7 +177,9 @@ ERROR 1205 (HY000):
 Lock wait timeout exceeded; try restarting transaction
 ```
 
-MySQL 8.4의 기본 설정에서 lock wait timeout은 **대기하던 문장만** 롤백한다. 트랜잭션 전체가 자동으로 끝났다고 가정하면 안 된다. 단, `innodb_rollback_on_timeout=ON`으로 시작한 서버는 timeout 때 트랜잭션 전체를 롤백한다. 실제 설정과 프레임워크의 rollback 규칙을 확인하고, 불확실한 상태로 다음 문장을 계속 실행하지 않도록 트랜잭션을 명시적으로 종료하는 편이 안전하다.
+**MySQL 8.4의 기본 설정에서 lock wait timeout은 대기하던 문장만 롤백하지만, deadlock으로 선택된 트랜잭션은 전체가 롤백된다.**
+
+timeout이 나도 트랜잭션 전체가 자동으로 끝났다고 가정하면 안 된다. 단, `innodb_rollback_on_timeout=ON`으로 시작한 서버는 timeout 때 트랜잭션 전체를 롤백한다. 실제 설정과 프레임워크의 rollback 규칙을 확인하고, 불확실한 상태로 다음 문장을 계속 실행하지 않도록 트랜잭션을 명시적으로 종료하는 편이 안전하다.
 
 deadlock은 다르다.
 
@@ -181,13 +188,15 @@ ERROR 1213 (40001):
 Deadlock found when trying to get lock; try restarting transaction
 ```
 
-InnoDB가 순환 대기를 감지하면 victim 하나를 골라 **트랜잭션 전체를 롤백**한다. 가장 최근 deadlock은 다음 명령으로 확인한다.
+InnoDB가 순환 대기를 감지하면 한 트랜잭션을 골라 전체를 롤백한다. 가장 최근 deadlock은 다음 명령으로 확인한다.
 
 ```sql
 SHOW ENGINE INNODB STATUS\G
 ```
 
-`LATEST DETECTED DEADLOCK`에서 각 트랜잭션이 보유한 잠금, 기다린 인덱스와 실행 문장을 본다. 재시도가 필요하다면 실패한 문장 하나가 아니라 트랜잭션 전체를 처음부터 실행해야 한다. 외부 호출이나 메시지 발행처럼 이미 나간 부수 효과가 있다면 재시도 전에 멱등성도 갖춰야 한다. 접근 순서를 통일하는 예방 패턴은 앞선 deadlock 글에서 다뤘으므로 여기서는 진단 결과를 읽는 데만 집중한다.
+`LATEST DETECTED DEADLOCK`에서 각 트랜잭션이 보유한 잠금, 기다린 인덱스와 실행 문장을 본다. 재시도가 필요하다면 실패한 문장 하나가 아니라 트랜잭션 전체를 처음부터 실행해야 한다.
+
+외부 호출이나 메시지 발행처럼 이미 나간 작업이 있다면 재시도 전에 멱등성도 갖춰야 한다. 접근 순서를 통일하는 방법은 앞선 deadlock 글에서 다뤘으므로 여기서는 진단 결과를 읽는 데만 집중한다.
 
 ## 먼저 하지 않는 대응
 
@@ -203,7 +212,7 @@ SHOW ENGINE INNODB STATUS\G
 
 ### SELECT FOR UPDATE를 추가한다
 
-경합을 없애는 문장이 아니라 경합 시 기다리게 만드는 locking read다. 최신 값을 잠근 뒤 애플리케이션에서 판단해야 할 때는 맞지만, 단순한 상태 전이라면 조건부 UPDATE나 유니크 제약이 더 작은 원자 경계일 수 있다.
+경합을 없애는 문장이 아니라 경합 시 기다리게 만드는 locking read다. 최신 값을 잠근 뒤 애플리케이션에서 판단해야 할 때는 맞지만, 단순한 상태 변경이라면 한 UPDATE에서 조건 확인과 변경을 함께 처리하거나 유니크 제약을 쓰는 편이 낫다.
 
 ### blocker를 바로 종료한다
 
@@ -220,4 +229,6 @@ SHOW ENGINE INNODB STATUS\G
 5. 1205 timeout인지 1213 deadlock인지 구분한다.
 6. 트랜잭션 경계, 인덱스, 접근 순서 순으로 원인을 고친다.
 
-S-lock과 X-lock의 차이는 출발점이다. 잠금 대기를 해결하는 정보는 그 뒤에 있다. **누가 무엇을 기다리는지, 왜 그 인덱스 범위를 잠갔는지, 잠금을 어느 트랜잭션 경계까지 들고 있는지**를 연결해야 설정 변경이 아니라 원인 수정으로 끝낼 수 있다.
+**누가 누구를 기다리는지, 왜 그 인덱스 범위를 잠갔는지, 잠금을 언제부터 들고 있는지를 연결해야 원인을 고칠 수 있다.** 이 세 가지를 확인한 뒤에 timeout이나 격리 수준 변경을 판단한다.
+
+[^legacy-lock-views]: 예전 가이드의 `INFORMATION_SCHEMA.INNODB_LOCKS`와 `INNODB_LOCK_WAITS`는 MySQL 8.0.1에서 제거됐다. `data_locks`는 대기 중인 잠금뿐 아니라 현재 보유한 잠금도 보여주므로 이전 뷰와 결과가 같지는 않다.

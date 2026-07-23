@@ -1,9 +1,10 @@
 ---
 title: "Check-Then-Act 동시성 문제를 조건부 UPDATE로 막은 이유"
 slug: "mysql-conditional-update"
-description: "SELECT 뒤 UPDATE하는 코드의 경합을 MVCC 탓으로 오해했다가, 조건을 UPDATE 안으로 옮겨 원자적으로 해결한 과정을 정리한다."
+description: "일반 SELECT와 UPDATE 사이의 경쟁을 MVCC 문제와 구분하고, 변경 조건을 UPDATE에 넣어 원자적으로 판정한 이유를 설명한다."
 kind: "tech"
 publishedAt: "2026-03-26"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -72,7 +73,7 @@ check ───────────── act
         다른 요청이 끼어들 수 있는 창
 ```
 
-이게 TOCTOU(Time of Check to Time of Use)다. 원인은 "스냅샷이 오래됐다"가 아니라 check와 act가 서로 다른 문장이라는 데 있었다.
+원인은 스냅샷이 오래된 것이 아니라, 확인과 변경이 서로 다른 SQL 문장이라는 데 있었다.
 
 MVCC가 전혀 무관한 것은 아니다. 순서를 바꿔 A가 먼저 커밋했더라도, B의 트랜잭션이 앞선 SELECT에서 이미 스냅샷을 만들었다면 B는 과거 값을 읽을 수 있다.
 
@@ -87,11 +88,11 @@ COMMIT
                                    → 과거 스냅샷의 0
 ```
 
-즉 MVCC는 최초 버그를 만들지는 않았지만, SELECT 결과를 변경 가능 여부의 최종 근거로 삼으면 안 되는 이유를 하나 더 보탠다.
+이 순서에서도 SELECT 결과만으로 변경 가능 여부를 최종 판단해서는 안 된다.
 
 ## 체크를 UPDATE의 WHERE로 옮겼다
 
-해결은 SELECT를 더 강하게 만드는 것이 아니라, 비즈니스 조건을 UPDATE 안으로 옮기는 것이었다.
+**변경 가능 조건을 UPDATE의 WHERE 절에 넣어 조건 확인과 변경을 한 문장으로 처리했다.**
 
 ```sql
 UPDATE resource_allocations
@@ -127,9 +128,9 @@ COMMIT
 
 문제가 난 경로는 UPDATE 한 문장이 autocommit으로 끝나는 구조였다. 이 경우 A가 즉시 커밋되므로 B는 최신 값을 보고 곧바로 실패한다. 명시적 트랜잭션 안에서도 원리는 같다. 다만 A가 커밋할 때까지 B가 잠금을 기다릴 수 있다.
 
-앞단 SELECT는 남겨뒀다. 단독 요청에서 불필요한 UPDATE를 피하고 더 이른 에러를 주는 데는 쓸모가 있다. 하지만 동시성 방어선은 SELECT가 아니라 조건부 UPDATE 한 곳이다.
+앞단 SELECT는 단독 요청에서 더 이른 오류를 주기 위해 남겼다. 동시 요청의 최종 판단은 조건부 UPDATE 결과로만 한다.
 
-## SELECT FOR UPDATE를 쓰지 않은 진짜 이유
+## SELECT FOR UPDATE를 쓰지 않은 이유
 
 처음에는 `SELECT ... FOR UPDATE`를 "잠금 경합이 커질 것 같다"는 이유로 기각했다. 이 설명도 틀렸다. `FOR UPDATE`와 UPDATE는 모두 검색한 인덱스 레코드에 배타 잠금을 건다. 조건부 UPDATE라고 잠금이 가벼워지는 것은 아니다.
 
@@ -140,9 +141,9 @@ COMMIT
 | `SELECT ... FOR UPDATE` | 읽은 뒤 복잡한 결정을 할 수 있음 | DB 왕복이 늘고 명시적 트랜잭션 경계가 필요 |
 | 조건부 UPDATE | check와 act가 한 문장 | 행이 이미 존재해야 함 |
 | 유니크 제약 | INSERT 경합도 DB가 보장 | 문제의 단위에 맞는 스키마 제약 필요 |
-| 분산 락 | DB 밖 자원까지 조율 가능 | 인프라와 실패 모드가 늘어남 |
+| 분산 락 | DB 밖 자원까지 조율 가능 | 인프라와 예외 처리 대상이 늘어남 |
 
-조건부 UPDATE를 고른 이유는 잠금이 적어서가 아니었다. 기존 쿼리에 조건을 더하고 affected rows를 검사하는 정도로 변경이 끝났기 때문이다. 지금 문제에 필요한 가장 작은 원자 연산이었다.
+조건부 UPDATE도 행에 배타 잠금을 건다. 이를 고른 이유는 기존 UPDATE에 조건을 추가하고 affected rows만 검사하면 됐기 때문이다.
 
 ## 이 패턴이 해결하지 못하는 것
 
@@ -162,12 +163,8 @@ UPDATE는 존재하지 않는 행의 상태 전이를 지킬 수 없다. 두 요
 
 autocommit이 꺼진 `SERIALIZABLE`에서는 평범한 SELECT가 암묵적인 공유 잠금 읽기로 바뀔 수 있다. 두 트랜잭션이 각각 S-lock을 가진 뒤 X-lock으로 전환하려 하면 데드락이 날 수 있다. 이 글의 흐름은 일반적으로 많이 쓰는 `READ COMMITTED`와 `REPEATABLE READ`를 전제로 한다.
 
-## 해결책보다 원인을 바로 설명하는 일이 어려웠다
+## 원인 설명도 고쳤다
 
 조건부 UPDATE 자체는 처음부터 잘 동작했다. 문제는 내가 그 이유를 MVCC로 설명하고 있었다는 데 있었다. 원인을 어렵게 짚으니 `FOR UPDATE`를 배제한 이유도 함께 틀어졌다.
 
-동시성 문제를 보면 격리 수준부터 떠올리기 쉽다. 이제는 먼저 더 단순한 질문을 한다.
-
-> 이 check가 어떤 잠금을 잡는가? check와 act 사이를 DB가 하나의 원자 연산으로 보장하는가?
-
-이 사례에서는 "일반 SELECT는 잠그지 않는다"는 한 줄과 WHERE 절의 조건 하나가 답이었다.
+**동시성 문제가 생기면 먼저 확인 쿼리가 어떤 잠금을 잡는지, 확인과 변경이 한 SQL 문장인지부터 본다.** 이 사례에서는 일반 SELECT가 잠그지 않는다는 점과 WHERE 절의 조건이 답이었다.

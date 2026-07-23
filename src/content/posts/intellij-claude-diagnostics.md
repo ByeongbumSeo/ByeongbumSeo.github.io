@@ -1,9 +1,10 @@
 ---
-title: "Claude Code가 IntelliJ 터미널에서만 에러를 자동 감지하던 이유"
+title: "Claude Code와 IntelliJ 진단 연결 — 내장 터미널 자동 연결과 /ide"
 slug: "intellij-claude-diagnostics"
-description: "IntelliJ 내장 터미널과 외부 터미널에서 Claude Code의 진단 공유가 다르게 보였던 이유와 /ide 연결 방식을 정리한다."
+description: "내장 터미널에서는 IDE 연결이 자동이고 외부 터미널에서는 /ide가 필요한 차이를 진단 공유 동작으로 풀어낸다."
 kind: "note"
 publishedAt: "2026-03-26"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -65,11 +66,9 @@ iTerm이나 Ghostty 같은 외부 터미널에서도 `/ide`로 실행 중인 Jet
 
 ## 내가 놓친 한 줄
 
-정리하면 간단하다.
-
 ```text
 IDE 터미널   → 자동 연결
 외부 터미널  → /ide로 연결
 ```
 
-"IntelliJ 터미널만 에러를 감지한다"가 아니라 "IntelliJ 터미널에서는 연결이 자동으로 됐다"가 정확한 설명이었다. 작은 차이지만, 원인을 알고 나니 익숙한 외부 터미널을 포기할 이유도 사라졌다.
+"IntelliJ 터미널만 에러를 감지한다"가 아니라 "IntelliJ 터미널에서는 연결이 자동으로 됐다"가 정확한 설명이었다. 원인을 알고 나니 익숙한 외부 터미널을 포기할 이유도 사라졌다.

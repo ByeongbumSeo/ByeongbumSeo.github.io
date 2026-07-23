@@ -1,9 +1,10 @@
 ---
-title: "PR 리뷰를 위해 브랜치를 바꿔야 하는데 작업 중인 코드가 있다면"
+title: "작업 중 다른 Git 브랜치를 볼 때 stash와 worktree 비교"
 slug: "git-stash-worktree"
-description: "커밋하지 않은 작업을 보존한 채 다른 브랜치를 확인할 때 git stash와 worktree 중 무엇을 선택할지 정리한다."
+description: "짧은 브랜치 전환에는 stash, 두 작업 공간을 함께 열 때는 worktree, 장기 중단에는 WIP 브랜치를 고르는 기준을 제시한다."
 kind: "note"
 publishedAt: "2026-04-02"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -29,37 +30,19 @@ references:
   feature/review-target 브랜치를 체크아웃해서 코드 확인
 ```
 
-이럴 때 떠오르는 선택지는 보통 `git stash`와 `git worktree`다. 둘 다 현재 작업을 보존하지만, 작업을 치우는 방식과 별도 작업 공간을 만드는 방식이라는 차이가 있다.
+이럴 때 떠오르는 선택지는 보통 `git stash`와 `git worktree`다. 둘 다 현재 작업을 보존하지만, 작업을 치우는 방식과 별도 작업 공간을 만드는 방식이라는 차이가 있다.[^stash-internals]
 
 ## git stash: 현재 작업을 잠깐 치워두기
 
 ```bash
-git stash
+git stash -u
 git switch feature/review-target
 # 코드 확인
 git switch feature/current-work
 git stash pop
 ```
 
-### stash는 무엇을 저장할까
-
-`stash`를 단순한 diff 파일 저장으로 생각하기 쉽지만, Git은 작업 트리 상태를 커밋 객체로 기록한다. 다만 일반 브랜치가 아니라 `refs/stash`와 그 reflog를 통해 접근한다.
-
-```text
-refs/stash -> W (작업 트리 상태)
-                |
-                +-- H: stash 당시 HEAD
-                +-- I: index 상태
-                +-- U: untracked 상태 (-u를 사용한 경우)
-```
-
-`refs/stash`가 직접 가리키는 것은 작업 트리 커밋 `W`다. 나머지 상태는 그 부모 관계로 연결된다. 이전 항목은 reflog에 쌓이므로 `stash@{0}`, `stash@{1}`처럼 선택할 수 있다.
-
-```bash
-git stash list
-# stash@{0}: WIP on feature/current-work: 1a2b3c4 작업 중
-# stash@{1}: WIP on feature/current-work: 5d6e7f8 이전 작업
-```
+기본 `git stash`는 추적 중인 파일의 변경만 담는다. 새로 만든 untracked 파일까지 보존하려면 `-u`, ignored 파일까지 포함해야 한다면 `-a`를 사용한다.
 
 ### pop과 apply의 차이
 
@@ -113,7 +96,7 @@ git worktree add ../another feature/current-work
 | 디스크 사용 | 거의 없음 | 체크아웃된 파일만큼 추가 |
 | 주의할 점 | 복원 시 충돌 가능 | worktree 정리와 브랜치 위치 관리 |
 
-잠깐 확인하고 바로 돌아오며 변경도 많지 않다면 stash가 간단하다. 두 코드를 나란히 비교하거나 리뷰가 길어질 것 같다면 worktree가 편하다.
+**잠깐 확인하고 돌아오면 stash, 두 브랜치를 동시에 열어두려면 worktree가 적합하다.**
 
 ## stash를 장기 보관함으로 쓰지는 말자
 
@@ -125,10 +108,6 @@ git stash push -m "리팩터링 중간 상태"
 
 메시지를 붙이면 조금 낫지만, 오랫동안 보관해야 하는 작업이라면 별도 브랜치에 WIP 커밋을 두는 편이 찾고 복구하기 쉽다. 작업을 다시 시작할 때 커밋을 정리하면 된다.
 
-정리하면 선택 기준은 이렇다.
+**장기간 멈춰 둘 작업은 stash보다 별도 브랜치의 WIP 커밋으로 남기는 편이 안전하다.**
 
-```text
-잠깐 다른 브랜치를 보고 온다 -> git stash
-두 브랜치를 동시에 열어둔다 -> git worktree
-장기간 작업을 중단한다       -> 별도 브랜치의 WIP 커밋
-```
+[^stash-internals]: stash는 단순한 diff 파일이 아니다. Git은 작업 트리와 index 상태를 커밋 객체로 기록하고 `refs/stash`의 reflog를 통해 `stash@{0}`, `stash@{1}`처럼 접근한다.

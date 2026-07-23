@@ -1,9 +1,10 @@
 ---
-title: "멀티스레드에서 count++이 안 되는 이유 — Java 잠금 전략"
+title: "Java count++ 경쟁 조건과 synchronized·Lock·AtomicInteger 선택"
 slug: "java-lock-strategies"
 description: "count++의 lost update를 출발점으로 synchronized, ReentrantLock, AtomicInteger와 CAS의 선택 기준을 비교한다."
 kind: "tech"
 publishedAt: "2026-04-03"
+updatedAt: "2026-07-23"
 draft: false
 deprecated: false
 outdated: false
@@ -215,17 +216,7 @@ CAS(42, 43) 성공
                                  CAS(43, 44) 성공
 ```
 
-락을 기다리며 block하지 않지만 충돌한 스레드는 연산을 반복한다. 경합이 심하면 재시도에 CPU를 계속 쓸 수 있다.
-
-## VarHandle과 Unsafe를 혼동했던 지점
-
-Java 9의 JEP 193은 `VarHandle`을 추가했다. `sun.misc.Unsafe`가 제공하던 메모리 접근과 원자 연산을 표준 API로 표현하기 위한 수단이다. 그래서 처음에는 최신 `AtomicInteger`도 내부적으로 `VarHandle`을 쓸 거라고 생각했다.
-
-OpenJDK 21 기준 `AtomicInteger.incrementAndGet()`은 `jdk.internal.misc.Unsafe`의 `getAndAddInt`를 사용한다. `Unsafe`의 Java fallback은 CAS 재시도 형태지만 JVM은 이 호출을 intrinsic으로 바꿔 아키텍처의 원자적 read-modify-write 명령으로 실행할 수 있다. 소스 주석에는 VarHandle로 구현하려 했지만 JVM 시작 과정의 순환 의존 문제가 남아 있다고 적혀 있다.
-
-반면 Javadoc은 `incrementAndGet()`의 메모리 효과를 `VarHandle.getAndAdd()` 기준으로 설명한다. 이것은 공개 명세의 기준이지 내부 구현이 VarHandle이라는 뜻은 아니다.
-
-이 차이는 직접 AtomicInteger를 사용할 때 동작을 바꾸지는 않는다. 다만 "VarHandle이 Unsafe의 공개 대안"이라는 사실과 "AtomicInteger 내부가 VarHandle로 구현됐다"는 주장은 구분해야 했다.
+락을 기다리며 block하지 않지만 충돌한 스레드는 연산을 반복한다. 경합이 심하면 재시도에 CPU를 계속 쓸 수 있다. 구체적인 내부 구현은 JDK에 따라 달라질 수 있다.[^atomic-implementation]
 
 ## 원자 변수 하나로 전체 불변식을 지킬 수는 없다
 
@@ -243,7 +234,7 @@ void reserve() {
 
 `available`의 감소는 원자적이지만 이력 추가와 합쳐진 하나의 불변식은 아니다. 이력 추가가 실패하거나 리스트가 여러 스레드에서 깨질 수 있다. "수량 감소와 이력 추가가 함께 성공해야 한다"면 하나의 AtomicInteger로 해결할 문제가 아니다.
 
-여러 필드를 함께 검사하고 바꾸려면 임계 영역을 잠그거나, 상태를 불변 객체 하나로 묶어 CAS하는 등 더 큰 원자 경계를 설계해야 한다.
+여러 필드를 함께 검사하고 바꾸려면 하나의 임계 영역에서 처리하거나, 상태를 불변 객체 하나로 묶어 CAS해야 한다.
 
 ## 경합 빈도만으로 선택하면 충분할까
 
@@ -258,16 +249,10 @@ void reserve() {
 
 CAS는 경합이 낮고 연산이 작은 경우 잘 맞는다. 경합이 높아 실패가 반복되거나 한 번 갱신하기 위한 계산이 비싸면 재시도 비용이 커진다. 잠금은 대기를 만들지만 한 스레드가 임계 영역을 끝내도록 보장하기 쉽다.
 
-그리고 성능보다 의미가 먼저다. 한 변수의 원자 갱신으로 불변식이 표현되지 않는데 "lock-free가 빠르다"는 이유로 AtomicInteger를 고르면 정확성을 잃는다.
+**여러 값이 함께 바뀌어야 한다면 `AtomicInteger` 하나로는 부족하다. 성능보다 먼저 원자적으로 묶어야 할 상태의 범위를 정해야 한다.**
 
 ## 정리
 
-`count++` 문제를 따라가며 선택 기준을 이렇게 정리했다.
+`count++`은 read-modify-write라서 원자적이지 않다. 단순한 임계 영역은 `synchronized`, 대기 방식을 제어해야 하면 `ReentrantLock`, 단일 값의 원자 갱신에는 원자 변수가 맞는다. **선택 기준은 충돌했을 때 누가 기다리고 다시 계산할지, 그리고 어디까지를 한 번에 바꿔야 하는지다.**
 
-- `count++`는 read-modify-write라서 원자적이지 않다.
-- `synchronized`는 가장 단순하게 임계 영역을 직렬화한다.
-- `ReentrantLock`은 timeout, 인터럽트, 공정성 같은 제어가 필요할 때 쓴다.
-- `AtomicInteger`는 명세가 보장하는 원자 연산으로 단일 값의 lost update를 막는다. 구체적인 명령과 재시도 방식은 JVM 구현에 달려 있다.
-- CAS가 안전하게 만드는 범위와 비즈니스 불변식의 범위가 같은지 확인해야 한다.
-
-처음에는 낙관적 락과 비관적 락을 성능 선택지로만 봤다. 실제로는 **충돌했을 때 누가 기다리고, 누가 다시 계산하며, 어디까지를 하나의 상태로 볼 것인가**를 정하는 선택에 더 가깝다.
+[^atomic-implementation]: Java 9의 `VarHandle`은 메모리 접근과 원자 연산을 표현하는 표준 API다. 다만 OpenJDK 21의 `AtomicInteger.incrementAndGet()`은 내부적으로 `jdk.internal.misc.Unsafe#getAndAddInt`를 사용하고, Javadoc은 메모리 효과를 `VarHandle.getAndAdd()` 기준으로 설명한다. 공개 명세와 내부 구현은 구분해야 한다.
