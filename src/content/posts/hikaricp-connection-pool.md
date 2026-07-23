@@ -3,6 +3,7 @@ title: "HikariCP, Connection Pool"
 slug: "hikaricp-connection-pool"
 description: "HikariCP와 데이터베이스 커넥션 풀의 역할, 동작 과정, 설정 기준을 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2023-12-07"
 updatedAt: "2026-07-07"
 draft: false

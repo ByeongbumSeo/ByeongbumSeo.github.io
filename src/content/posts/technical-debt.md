@@ -3,6 +3,7 @@ title: "개발자의 기술 부채"
 slug: "technical-debt"
 description: "개발자가 마주치는 기술 부채의 원인과 줄이는 방법을 정리한다."
 kind: "diary"
+category: "work-retrospective"
 publishedAt: "2024-03-07"
 draft: false
 deprecated: false

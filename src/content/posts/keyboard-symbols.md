@@ -3,6 +3,7 @@ title: "키보드 특수 기호 명칭"
 slug: "keyboard-symbols"
 description: "키보드 특수 기호의 한국어와 영어 명칭을 정리한다."
 kind: "note"
+category: "writing"
 publishedAt: "2023-12-01"
 draft: false
 deprecated: false

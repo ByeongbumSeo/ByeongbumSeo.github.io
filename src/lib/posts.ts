@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content";
+import { getSection, type PostKind } from "./taxonomy";
 
 export type Post = CollectionEntry<"posts">;
 
@@ -32,6 +33,18 @@ export function getKindPosts(posts: Post[], kind: Post["data"]["kind"]) {
   return posts.filter((post) => post.data.kind === kind);
 }
 
+export function getCategoryPosts(posts: Post[], kind: PostKind, category: string) {
+  return posts.filter((post) => post.data.kind === kind && post.data.category === category);
+}
+
+export function getCategoryCounts(posts: Post[], kind: PostKind) {
+  const kindPosts = getKindPosts(posts, kind);
+  return getSection(kind).categories.map((category) => ({
+    ...category,
+    count: kindPosts.filter((post) => post.data.category === category.slug).length
+  }));
+}
+
 export function getRelatedPosts(post: Post, posts: Post[], limit = 3) {
   const explicit = post.data.relatedPosts
     .map((slug) => posts.find((candidate) => candidate.data.slug === slug))
@@ -60,6 +73,16 @@ export function getSeriesPosts(post: Post, posts: Post[]) {
 
 export function getAllTags(posts: Post[]) {
   return [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) => a.localeCompare(b));
+}
+
+export function getTagCounts(posts: Post[]) {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    for (const tag of post.data.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
 export function getSeriesGroups(posts: Post[]) {

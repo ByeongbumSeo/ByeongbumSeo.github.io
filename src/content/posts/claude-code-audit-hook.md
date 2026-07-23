@@ -3,6 +3,7 @@ title: "Claude Code Hook으로 로컬 활동 로그 만들기"
 slug: "claude-code-audit-hook"
 description: "SessionStart·PostToolUse·matcher로 세션별 활동 로그를 만들고, matcher 밖 도구의 누락 가능성과 평문 로그 위험까지 함께 짚는다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-08"
 updatedAt: "2026-07-23"
 draft: false

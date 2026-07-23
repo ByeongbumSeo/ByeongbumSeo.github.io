@@ -3,6 +3,7 @@ title: "Chrome DevTools MCP와 Playwright MCP의 세션·재현성 비교"
 slug: "browser-mcp-comparison"
 description: "Chrome DevTools MCP와 Playwright MCP를 세션, 디버깅 기능, 재현성, 브라우저 지원 관점에서 비교한다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-10"
 updatedAt: "2026-07-23"
 draft: false

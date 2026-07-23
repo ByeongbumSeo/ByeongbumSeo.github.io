@@ -1,0 +1,76 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CategoryNav from "../../components/CategoryNav.astro";
+import PostList from "../../components/PostList.astro";
+import type { Post } from "../../lib/posts";
+import { getCategoryPosts, getPublishedPosts } from "../../lib/posts";
+import { TAXONOMY, getCategory } from "../../lib/taxonomy";
+
+interface CategoryInfo {
+  slug: string;
+  label: string;
+  description: string;
+}
+
+interface Props {
+  category: CategoryInfo;
+  posts: Post[];
+  publishedPosts: Post[];
+}
+
+export async function getStaticPaths() {
+  const publishedPosts = await getPublishedPosts();
+  const paths = [];
+
+  for (const candidate of TAXONOMY.diary.categories) {
+    const category = getCategory("diary", candidate.slug);
+    const posts = getCategoryPosts(publishedPosts, "diary", candidate.slug);
+    if (!category || posts.length === 0) continue;
+
+    paths.push({
+      params: { category: candidate.slug },
+      props: { category, posts, publishedPosts }
+    });
+  }
+
+  return paths;
+}
+
+const { category, posts, publishedPosts } = Astro.props;
+---
+
+<BaseLayout
+  title={`${category.label} | ${TAXONOMY.diary.label}`}
+  description={category.description}
+>
+  <section class="page-heading category-heading">
+    <p class="eyebrow"><a href={TAXONOMY.diary.path}>{TAXONOMY.diary.label}</a></p>
+    <h1>{category.label}</h1>
+    <p>{category.description}</p>
+    <span class="category-heading__count">글 {posts.length}개</span>
+  </section>
+  <CategoryNav
+    kind="diary"
+    posts={publishedPosts}
+    selectedCategory={category.slug}
+  />
+  <PostList posts={posts} />
+</BaseLayout>
+
+<style>
+  .category-heading .eyebrow a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .category-heading .eyebrow a:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  .category-heading__count {
+    display: inline-block;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>

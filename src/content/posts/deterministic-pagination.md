@@ -3,6 +3,7 @@ title: "페이징 중복·누락, OFFSET보다 ORDER BY를 먼저 본 이유"
 slug: "deterministic-pagination"
 description: "OFFSET 페이징에서 같은 행이 다시 보인 원인을 고유하지 않은 ORDER BY에서 찾고, 마지막 정렬 키와 커서 페이징을 비교한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-01-21"
 updatedAt: "2026-07-23"
 draft: false

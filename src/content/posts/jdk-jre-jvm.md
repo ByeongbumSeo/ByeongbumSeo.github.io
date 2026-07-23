@@ -3,6 +3,7 @@ title: "JDK, JRE, JVM, JIT"
 slug: "jdk-jre-jvm"
 description: "JDK, JRE, JVM, JIT의 차이와 Java 실행 구조를 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-02-13"
 draft: false
 deprecated: false

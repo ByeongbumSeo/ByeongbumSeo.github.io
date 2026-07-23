@@ -3,6 +3,7 @@ import type { MarkdownHeading } from "astro";
 import type { Post } from "../lib/posts";
 import { formatDate } from "../lib/posts";
 import { SECTION_LABELS, SECTION_PATHS } from "../lib/site";
+import { categoryPath, getCategory } from "../lib/taxonomy";
 import BaseLayout from "./BaseLayout.astro";
 import FloatingToc from "../components/FloatingToc.astro";
 import References from "../components/References.astro";
@@ -20,6 +21,7 @@ interface Props {
 const { post, headings, relatedPosts, seriesPosts } = Astro.props;
 const sectionLabel = SECTION_LABELS[post.data.kind];
 const sectionPath = SECTION_PATHS[post.data.kind];
+const category = getCategory(post.data.kind, post.data.category);
 const normalizedHeadings = headings
   .filter((heading) => heading.slug !== "footnote-label")
   .map((heading, index) => ({ ...heading, slug: `section-${index + 1}` }));
@@ -29,12 +31,33 @@ const tocHeadings = normalizedHeadings
 
 <BaseLayout title={post.data.title} description={post.data.description}>
   <article class="post-shell">
-    <header class="post-header">
-      <a class="section-label" href={sectionPath}>{sectionLabel}</a>
-      <h1>{post.data.title}</h1>
-      <p class="post-description">{post.data.description}</p>
+    <header class="post-header" data-pagefind-body>
+      <nav class="post-taxonomy" aria-label="글 분류">
+        <a
+          href={sectionPath}
+          data-pagefind-filter={`kind:${post.data.kind}`}
+          data-pagefind-meta={`kind:${post.data.kind}`}
+        >
+          {sectionLabel}
+        </a>
+        <span aria-hidden="true">/</span>
+        <a
+          href={categoryPath(post.data.kind, post.data.category)}
+          data-pagefind-filter={`category:${post.data.category}`}
+          data-pagefind-meta={`category:${category?.label ?? post.data.category}`}
+        >
+          {category?.label ?? post.data.category}
+        </a>
+      </nav>
+      <h1 data-pagefind-meta="title">{post.data.title}</h1>
+      <p class="post-description" data-pagefind-meta="description">{post.data.description}</p>
       <div class="post-meta">
-        <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+        <time
+          datetime={post.data.publishedAt.toISOString()}
+          data-pagefind-meta={`date:${post.data.publishedAt.toISOString()}`}
+        >
+          {formatDate(post.data.publishedAt)}
+        </time>
         {
           post.data.updatedAt && (
             <>
@@ -45,14 +68,14 @@ const tocHeadings = normalizedHeadings
         }
       </div>
       <div class="tag-list" aria-label="Tags">
-        {post.data.tags.map((tag) => <a href={`/tags/${tag}/`}>{tag}</a>)}
+        {post.data.tags.map((tag) => <a href={`/tags/${tag}/`} data-pagefind-filter="tag">{tag}</a>)}
       </div>
       <StatusBanner label="Deprecated" status={post.data.deprecated} />
       <StatusBanner label="Outdated" status={post.data.outdated} />
       <SeriesNav post={post} posts={seriesPosts} />
     </header>
     <div class="post-layout">
-      <div class="post-content">
+      <div class="post-content" data-pagefind-body>
         <slot />
       </div>
       <FloatingToc headings={tocHeadings} />

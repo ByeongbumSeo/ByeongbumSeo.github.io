@@ -3,6 +3,7 @@ title: "Github 블로그 생성기(3)"
 slug: "github-pages-blog-setup-3"
 description: "GitHub Pages 블로그 커스터마이징 과정을 정리한 세 번째 기록이다."
 kind: "note"
+category: "blog"
 publishedAt: "2023-11-19"
 draft: false
 deprecated: false

@@ -3,6 +3,7 @@ title: "Spring JDBC, JdbcTemplate"
 slug: "spring-jdbctemplate"
 description: "Spring JDBC와 JdbcTemplate의 역할과 사용 흐름을 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-01-21"
 draft: false
 deprecated: false

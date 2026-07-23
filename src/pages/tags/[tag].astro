@@ -16,8 +16,9 @@ const { tag, posts } = Astro.props;
 
 <BaseLayout title={`Tag: ${tag}`} description={`${tag} 태그가 붙은 글 목록입니다.`}>
   <section class="page-heading">
-    <p class="eyebrow">Tag</p>
+    <p class="eyebrow"><a href="/tags/">Tags</a></p>
     <h1>{tag}</h1>
+    <p>{posts.length}개의 글이 있습니다.</p>
   </section>
   <PostList posts={posts} />
 </BaseLayout>

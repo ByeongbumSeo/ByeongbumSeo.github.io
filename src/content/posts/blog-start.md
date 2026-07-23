@@ -3,6 +3,7 @@ title: "블로그 개시"
 slug: "blog-start"
 description: "개인 블로그를 시작하며 학습 루틴과 기록의 목적을 남긴다."
 kind: "diary"
+category: "daily"
 publishedAt: "2023-11-12"
 draft: false
 deprecated: false

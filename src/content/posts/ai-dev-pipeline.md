@@ -3,6 +3,7 @@ title: "요구사항부터 PR까지 잇는 12단계 AI 개발 파이프라인"
 slug: "ai-dev-pipeline"
 description: "요구사항 확인, TDD, 정적·동적 검증과 PR 공유를 작은 스킬로 연결하되 작업 크기에 따라 단계를 줄이는 운영 방식을 보여준다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-11"
 updatedAt: "2026-07-23"
 draft: false

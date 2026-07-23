@@ -3,6 +3,7 @@ title: "Gradle과 Maven"
 slug: "gradle-maven"
 description: "Gradle과 Maven의 차이, 빌드 흐름, 성능 특징을 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-02-27"
 draft: false
 deprecated: false

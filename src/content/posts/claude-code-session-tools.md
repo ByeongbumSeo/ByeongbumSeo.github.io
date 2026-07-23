@@ -3,6 +3,7 @@ title: "Claude Code에서 곁다리 작업을 다루는 /branch·/fork·/subtask
 slug: "claude-code-session-tools"
 description: "2026년 4월 Claude Code의 /branch, 당시 /fork, /btw를 비교하고 이후 /fork와 /subtask의 역할이 바뀐 과정을 보충한다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-29"
 updatedAt: "2026-07-23"
 draft: false

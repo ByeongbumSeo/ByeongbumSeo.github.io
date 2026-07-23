@@ -3,6 +3,7 @@ title: "좋은 회사란 무엇일까"
 slug: "good-company"
 description: "좋은 회사에 대해 고민한 개인적인 기준과 생각을 정리한다."
 kind: "diary"
+category: "work-retrospective"
 publishedAt: "2024-03-03"
 draft: false
 deprecated: false

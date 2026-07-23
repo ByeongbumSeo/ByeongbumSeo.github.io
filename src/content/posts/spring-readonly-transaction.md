@@ -3,6 +3,7 @@ title: "Spring 조회 트랜잭션에서 readOnly가 필요한 경우"
 slug: "spring-readonly-transaction"
 description: "Spring 조회 메서드에서 트랜잭션 유무가 커넥션 재사용, 읽기 일관성, readOnly 힌트와 비용에 어떤 차이를 만드는지 확인한다."
 kind: "tech"
+category: "java"
 publishedAt: "2026-04-01"
 updatedAt: "2026-07-23"
 draft: false

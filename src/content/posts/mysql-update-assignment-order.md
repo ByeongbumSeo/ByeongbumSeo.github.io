@@ -3,6 +3,7 @@ title: "MySQL UPDATE에서 SET 순서가 결과를 바꾸는 이유"
 slug: "mysql-update-assignment-order"
 description: "앞선 할당으로 바뀐 값을 다음 식이 읽는 MySQL 단일 테이블 UPDATE 동작과, 순서 의존 SQL을 테스트로 고정하는 기준을 제시한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-01-15"
 updatedAt: "2026-07-23"
 draft: false

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SearchPanel from "../components/SearchPanel.astro";
+---
+
+<BaseLayout title="Search" description="제목과 본문을 검색하고 섹션, 카테고리, 태그로 글을 찾습니다.">
+  <section class="page-heading">
+    <p class="eyebrow">Search</p>
+    <h1>글 찾기</h1>
+    <p>검색어와 분류를 조합해 필요한 글을 찾아보세요.</p>
+  </section>
+  <SearchPanel />
+</BaseLayout>

@@ -3,6 +3,7 @@ title: "JDBC"
 slug: "jdbc"
 description: "JDBC의 역할, 실행 흐름, 드라이버와 커넥션 사용 방식을 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-01-05"
 draft: false
 deprecated: false

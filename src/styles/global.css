@@ -372,6 +372,21 @@ pre code {
   font-size: 0.9rem;
 }
 
+.post-row__meta a {
+  color: var(--muted);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.post-row__meta a:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.post-row__meta time {
+  margin-left: 0.25rem;
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -446,13 +461,28 @@ pre code {
   overflow-wrap: anywhere;
 }
 
-.section-label {
+.section-label,
+.post-taxonomy {
   display: inline-flex;
   margin-bottom: 0.5rem;
   color: var(--accent-strong);
   font-size: 0.9rem;
   font-weight: 800;
   text-decoration: none;
+}
+
+.post-taxonomy {
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.post-taxonomy a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-taxonomy a:hover {
+  text-decoration: underline;
 }
 
 .post-header h1 {
@@ -706,6 +736,10 @@ pre code {
 }
 
 @media (max-width: 920px) {
+  .site-header {
+    position: static;
+  }
+
   .site-header__inner,
   .site-footer {
     align-items: start;

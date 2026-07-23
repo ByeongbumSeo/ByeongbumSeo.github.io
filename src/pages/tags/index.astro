@@ -1,0 +1,202 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedPosts, getTagCounts } from "../../lib/posts";
+
+const tags = getTagCounts(await getPublishedPosts());
+---
+
+<BaseLayout title="Tags" description="주제별 태그로 글을 찾아볼 수 있습니다.">
+  <section class="page-heading">
+    <p class="eyebrow">Browse by topic</p>
+    <h1>Tags</h1>
+    <p>관심 있는 기술과 주제를 선택해 관련 글을 찾아보세요.</p>
+  </section>
+
+  <section class="tag-browser" aria-labelledby="tag-search-label">
+    <label id="tag-search-label" for="tag-search">태그 검색</label>
+    <input
+      id="tag-search"
+      type="search"
+      placeholder="예: mysql, java, ai-agent"
+      autocomplete="off"
+      spellcheck="false"
+      aria-controls="tag-list"
+      data-tag-search
+    />
+
+    <p class="tag-browser__status" aria-live="polite" aria-atomic="true">
+      <span data-tag-result-count>{tags.length}</span>개의 태그
+    </p>
+
+    <ul id="tag-list" class="tag-grid">
+      {
+        tags.map(({ tag, count }) => (
+          <li data-tag-item data-tag-name={tag}>
+            <a href={`/tags/${tag}/`} aria-label={`${tag} 태그, 글 ${count}개`}>
+              <span class="tag-grid__name">#{tag}</span>
+              <span class="tag-grid__count" aria-hidden="true">글 {count}개</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="tag-browser__empty" data-tag-empty hidden={tags.length > 0}>
+      일치하는 태그가 없습니다.
+    </p>
+  </section>
+</BaseLayout>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>("[data-tag-search]");
+  const items = Array.from(document.querySelectorAll<HTMLElement>("[data-tag-item]"));
+  const count = document.querySelector<HTMLElement>("[data-tag-result-count]");
+  const empty = document.querySelector<HTMLElement>("[data-tag-empty]");
+  let isComposing = false;
+
+  const normalize = (value: string) =>
+    value.trim().toLocaleLowerCase("ko-KR").replace(/[-_\s]+/g, "");
+
+  const filterTags = () => {
+    if (!input || !count || !empty) return;
+
+    const query = normalize(input.value);
+    let visibleCount = 0;
+
+    for (const item of items) {
+      const tag = normalize(item.dataset.tagName ?? "");
+      const visible = tag.includes(query);
+      item.hidden = !visible;
+      if (visible) visibleCount += 1;
+    }
+
+    count.textContent = String(visibleCount);
+    empty.hidden = visibleCount > 0;
+  };
+
+  input?.addEventListener("compositionstart", () => {
+    isComposing = true;
+  });
+
+  input?.addEventListener("compositionend", () => {
+    isComposing = false;
+    filterTags();
+  });
+
+  input?.addEventListener("input", () => {
+    if (!isComposing) filterTags();
+  });
+
+  input?.addEventListener("search", filterTags);
+</script>
+
+<style>
+  .tag-browser {
+    max-width: 900px;
+  }
+
+  .tag-browser > label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  .tag-browser > input {
+    width: min(100%, 560px);
+    min-height: 48px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.65rem 0.8rem;
+    font: inherit;
+    line-height: 1.2;
+  }
+
+  .tag-browser > input::placeholder {
+    color: var(--muted);
+    opacity: 0.8;
+  }
+
+  .tag-browser > input:focus-visible {
+    border-color: var(--accent);
+    outline: 3px solid rgb(15 118 110 / 0.2);
+    outline-offset: 2px;
+  }
+
+  .tag-browser__status,
+  .tag-browser__empty {
+    color: var(--muted);
+  }
+
+  .tag-browser__status {
+    margin: 0.75rem 0 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tag-grid li[hidden] {
+    display: none;
+  }
+
+  .tag-grid a {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 0.65rem 0.8rem;
+    text-decoration: none;
+  }
+
+  .tag-grid a:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+    box-shadow: 0 8px 24px rgb(24 32 31 / 0.06);
+  }
+
+  .tag-grid__name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 700;
+  }
+
+  .tag-grid__count {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tag-browser__empty {
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .tag-browser__empty[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 560px) {
+    .tag-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

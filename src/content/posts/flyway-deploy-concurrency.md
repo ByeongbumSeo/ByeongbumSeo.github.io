@@ -3,6 +3,7 @@ title: "Flyway out-of-order는 CI로, 중첩 배포는 직렬화로 막기"
 slug: "flyway-deploy-concurrency"
 description: "AI 사이드 프로젝트에서 Flyway의 버전 순서를 유지하면서 out-of-order, 중복 SQL과 겹치는 배포를 CI·배포 큐·DB 제약으로 나눠 막은 판단을 다룬다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-07-11"
 updatedAt: "2026-07-23"
 draft: false

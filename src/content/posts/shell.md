@@ -3,6 +3,7 @@ title: "쉘(Shell)"
 slug: "shell"
 description: "Shell의 역할과 기본 개념을 정리한다."
 kind: "tech"
+category: "linux"
 publishedAt: "2023-11-29"
 draft: false
 deprecated: false

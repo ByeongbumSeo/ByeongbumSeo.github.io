@@ -3,6 +3,7 @@ title: "Spring Boot URL prefix에서 필터와 context-path 비교"
 slug: "spring-context-path"
 description: "전환기 호환 필터를 고정 context-path로 바꾸면서 prefix 매핑, 헬스체크와 컨텍스트 밖 접근 로그의 책임 이동을 검증한다."
 kind: "tech"
+category: "java"
 publishedAt: "2026-07-02"
 updatedAt: "2026-07-23"
 draft: false

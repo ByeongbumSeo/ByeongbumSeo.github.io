@@ -3,6 +3,7 @@ title: "parseInt() vs valueOf(), Wrapper클래스"
 slug: "parseint-valueof"
 description: "Java의 parseInt와 valueOf 차이를 Wrapper 클래스 관점에서 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2023-12-03"
 draft: false
 deprecated: false

@@ -3,6 +3,7 @@ title: "쿼리 최적화 전후 API 응답을 JSON 전체로 비교하기"
 slug: "response-equivalence-testing"
 description: "수정 전후 서버에 같은 fixture와 요청을 보내 배열 순서·커서·필드까지 비교하고, 성능 측정과 결과 검증을 분리한 방법을 보여준다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-07-15"
 updatedAt: "2026-07-23"
 draft: false

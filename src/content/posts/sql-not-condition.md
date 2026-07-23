@@ -3,6 +3,7 @@ title: "SQL NOT으로 반대 조건을 읽기 쉽게 표현하기"
 slug: "sql-not-condition"
 description: "서로 반대되는 조회 옵션을 구현할 때 NOT으로 조건의 관계를 명확하게 표현하는 방법을 정리한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-07-23"
 draft: false
 deprecated: false

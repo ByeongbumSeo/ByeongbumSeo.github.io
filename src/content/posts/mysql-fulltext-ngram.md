@@ -3,6 +3,7 @@ title: "MySQL 한글 부분 검색에서 제한된 LIKE와 FULLTEXT ngram 비교
 slug: "mysql-fulltext-ngram"
 description: "한글 부분 검색에서 제한된 LIKE와 ngram FULLTEXT가 만드는 결과·토큰·색인 비용을 비교해, 이번에는 LIKE를 유지한 기준을 제시한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-01-16"
 updatedAt: "2026-07-23"
 draft: false

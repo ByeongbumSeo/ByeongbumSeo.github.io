@@ -1,7 +1,8 @@
 ---
 import type { Post } from "../lib/posts";
 import { formatDate, postUrl } from "../lib/posts";
-import { SECTION_LABELS } from "../lib/site";
+import { SECTION_LABELS, SECTION_PATHS } from "../lib/site";
+import { categoryPath, getCategory } from "../lib/taxonomy";
 
 interface Props {
   posts: Post[];
@@ -15,7 +16,14 @@ const { posts } = Astro.props;
     posts.map((post) => (
       <article class="post-row">
         <div class="post-row__meta">
-          <span>{SECTION_LABELS[post.data.kind]}</span>
+          <a href={SECTION_PATHS[post.data.kind]}>
+            {SECTION_LABELS[post.data.kind]}
+          </a>
+          <span aria-hidden="true">/</span>
+          <a href={categoryPath(post.data.kind, post.data.category)}>
+            {getCategory(post.data.kind, post.data.category)?.label ?? post.data.category}
+          </a>
+          <span aria-hidden="true">·</span>
           <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
         </div>
         <h2><a href={postUrl(post)}>{post.data.title}</a></h2>

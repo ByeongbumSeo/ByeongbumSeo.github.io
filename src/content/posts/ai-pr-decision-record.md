@@ -3,6 +3,7 @@ title: "AI 개발이 빨라진 뒤, PR은 의사결정 문서가 됐다"
 slug: "ai-pr-decision-record"
 description: "작업 문서의 결정과 검증 결과를 PR·릴리즈 노트·위키까지 이어 쓰면서, 사람이 직접 확인해야 할 판단을 돌아봤다."
 kind: "diary"
+category: "article-notes"
 publishedAt: "2026-07-23"
 draft: false
 deprecated: false

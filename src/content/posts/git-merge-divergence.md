@@ -3,6 +3,7 @@ title: "릴리즈 PR 뒤 갈라진 Git 브랜치를 tree 해시로 수렴하기"
 slug: "git-merge-divergence"
 description: "tree는 같지만 부모 이력이 다른 환경 브랜치를 진단하고, 공유 이력을 force push 없이 --ff-only로 한 지점에 모은 방법을 설명한다."
 kind: "tech"
+category: "git"
 publishedAt: "2026-07-03"
 updatedAt: "2026-07-23"
 draft: false

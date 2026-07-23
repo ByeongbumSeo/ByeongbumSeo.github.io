@@ -3,6 +3,7 @@ title: "CloudFront 캐시로 Swagger 문서가 갱신되지 않을 때"
 slug: "cloudfront-stale-swagger"
 description: "최신 빌드가 배포됐는데도 Swagger 문서만 갱신되지 않은 문제를 CloudFront 응답 헤더로 분리 진단한 과정을 기록한다."
 kind: "tech"
+category: "web"
 publishedAt: "2026-07-02"
 updatedAt: "2026-07-23"
 draft: false

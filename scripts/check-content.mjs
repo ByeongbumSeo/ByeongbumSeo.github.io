@@ -1,10 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
+import { TAXONOMY } from "../src/lib/taxonomy.ts";
 
 const root = process.cwd();
 const postsDir = path.join(root, "src/content/posts");
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const errors = [];
+const categoriesByKind = Object.fromEntries(
+  Object.entries(TAXONOMY).map(([kind, section]) => [
+    kind,
+    new Set(section.categories.map((category) => category.slug))
+  ])
+);
 
 function parseFrontmatter(file) {
   const text = fs.readFileSync(file, "utf8");
@@ -19,10 +26,11 @@ function parseFrontmatter(file) {
   const title = strip(get("title"));
   const description = strip(get("description"));
   const kind = strip(get("kind"));
+  const category = strip(get("category"));
   const publishedAt = strip(get("publishedAt"));
   const updatedAt = strip(get("updatedAt"));
   const draft = strip(get("draft"));
-  return { yaml, text, slug, title, description, kind, publishedAt, updatedAt, draft };
+  return { yaml, text, slug, title, description, kind, category, publishedAt, updatedAt, draft };
 }
 
 function strip(value) {
@@ -48,10 +56,13 @@ for (const name of files) {
   const data = parseFrontmatter(file);
   if (!data) continue;
 
-  for (const key of ["title", "slug", "description", "kind", "publishedAt", "draft"]) {
+  for (const key of ["title", "slug", "description", "kind", "category", "publishedAt", "draft"]) {
     if (!data[key]) errors.push(`${name}: missing ${key}`);
   }
   if (!["tech", "note", "diary"].includes(data.kind)) errors.push(`${name}: invalid kind ${data.kind}`);
+  if (categoriesByKind[data.kind] && !categoriesByKind[data.kind].has(data.category)) {
+    errors.push(`${name}: invalid category ${data.category} for ${data.kind}`);
+  }
   if (!slugPattern.test(data.slug ?? "")) errors.push(`${name}: slug must be lowercase ASCII kebab-case`);
   if (/^\d+$/.test(data.slug ?? "")) errors.push(`${name}: slug must not be numeric-only`);
   if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(data.slug ?? "")) errors.push(`${name}: slug must not contain Korean`);

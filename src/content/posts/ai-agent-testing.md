@@ -3,6 +3,7 @@ title: "AI 에이전트가 만든 과도한 mock 테스트 줄이기"
 slug: "ai-agent-testing"
 description: "DAO·매퍼·내부 유틸까지 mock한 테스트가 리팩터링과 실제 매핑 오류에 취약했던 이유를 짚고, 외부 경계만 대역으로 두는 원칙을 에이전트 스킬에 반영한 판단을 다룬다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-20"
 updatedAt: "2026-07-23"
 draft: false

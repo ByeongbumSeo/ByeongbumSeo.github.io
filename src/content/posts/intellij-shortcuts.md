@@ -3,6 +3,7 @@ title: "IntelliJ 유용한 단축키 정리"
 slug: "intellij-shortcuts"
 description: "IntelliJ IDEA에서 자주 쓰는 단축키와 디버깅 팁을 정리한다."
 kind: "note"
+category: "ide"
 publishedAt: "2023-11-30"
 draft: false
 deprecated: false

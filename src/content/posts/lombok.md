@@ -3,6 +3,7 @@ title: "Lombok"
 slug: "lombok"
 description: "Lombok의 목적, 주요 어노테이션, 설정 방법을 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-02-03"
 draft: false
 deprecated: false

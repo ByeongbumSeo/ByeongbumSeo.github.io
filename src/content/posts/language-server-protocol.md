@@ -3,6 +3,7 @@ title: "Language Server Protocol(LSP)로 자동완성과 정의 이동이 동작
 slug: "language-server-protocol"
 description: "에디터와 언어 분석기를 JSON-RPC로 분리한 구조를 메시지 예제로 설명하고, IntelliJ와 Claude Code 연동이 LSP 서버가 아닌 이유를 구분한다."
 kind: "tech"
+category: "ide"
 publishedAt: "2026-04-08"
 updatedAt: "2026-07-23"
 draft: false

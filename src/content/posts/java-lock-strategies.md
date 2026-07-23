@@ -3,6 +3,7 @@ title: "Java count++ 경쟁 조건과 synchronized·Lock·AtomicInteger 선택"
 slug: "java-lock-strategies"
 description: "count++의 lost update를 출발점으로 synchronized, ReentrantLock, AtomicInteger와 CAS의 선택 기준을 비교한다."
 kind: "tech"
+category: "java"
 publishedAt: "2026-04-03"
 updatedAt: "2026-07-23"
 draft: false

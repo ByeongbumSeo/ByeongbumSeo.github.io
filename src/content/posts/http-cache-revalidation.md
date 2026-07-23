@@ -3,6 +3,7 @@ title: "HTTP 캐시 재검증: ETag와 304의 동작 원리"
 slug: "http-cache-revalidation"
 description: "max-age 이후 ETag와 If-None-Match로 캐시를 재검증하는 흐름과 Spring·URLSession에서 304가 다르게 보이는 이유를 다룬다."
 kind: "tech"
+category: "web"
 publishedAt: "2025-05-03"
 updatedAt: "2026-07-23"
 draft: false

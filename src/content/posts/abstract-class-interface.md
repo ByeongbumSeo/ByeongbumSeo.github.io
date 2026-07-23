@@ -3,6 +3,7 @@ title: "추상 클래스와 인터페이스"
 slug: "abstract-class-interface"
 description: "Java에서 추상 클래스와 인터페이스를 언제 어떻게 구분해서 쓰는지 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-01-31"
 updatedAt: "2026-07-08"
 draft: false

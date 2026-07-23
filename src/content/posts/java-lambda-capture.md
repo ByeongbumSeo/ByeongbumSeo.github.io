@@ -3,6 +3,7 @@ title: "Java 람다 캡처의 effectively final과 definite assignment"
 slug: "java-lambda-capture"
 description: "Java 람다의 지역변수 캡처에서 effectively final과 definite assignment가 왜 별개의 규칙인지 바이트코드와 예제로 확인한다."
 kind: "tech"
+category: "java"
 publishedAt: "2026-03-26"
 updatedAt: "2026-07-23"
 draft: false

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import CategoryNav from "../../components/CategoryNav.astro";
 import PostList from "../../components/PostList.astro";
 import { getKindPosts, getPublishedPosts } from "../../lib/posts";
 
@@ -12,5 +13,6 @@ const posts = getKindPosts(await getPublishedPosts(), "diary");
     <h1>Diary</h1>
     <p>기술 밖의 고민, 성장 과정, 일하며 느낀 것을 남기는 공간입니다.</p>
   </section>
+  <CategoryNav kind="diary" posts={posts} />
   <PostList posts={posts} />
 </BaseLayout>

@@ -3,6 +3,7 @@ title: "MySQL 드라이빙 테이블을 필터 결과와 반복 횟수로 판단
 slug: "mysql-driving-table"
 description: "원본 테이블 크기보다 필터 후 행 수·안쪽 인덱스 비용·EXPLAIN ANALYZE의 loops로 nested-loop 조인 순서를 판단한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-04-01"
 updatedAt: "2026-07-23"
 draft: false

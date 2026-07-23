@@ -1,0 +1,120 @@
+---
+import type { Post } from "../lib/posts";
+import { getCategoryCounts } from "../lib/posts";
+import { TAXONOMY, categoryPath, type PostKind } from "../lib/taxonomy";
+
+interface Props {
+  kind: PostKind;
+  posts: Post[];
+  selectedCategory?: string;
+}
+
+const { kind, posts, selectedCategory } = Astro.props;
+const section = TAXONOMY[kind];
+const total = posts.filter((post) => post.data.kind === kind).length;
+const categories = getCategoryCounts(posts, kind).filter((category) => category.count > 0);
+---
+
+<nav class="category-nav" aria-label={`${section.label} 카테고리`}>
+  <ul>
+    <li>
+      <a
+        href={section.path}
+        aria-current={selectedCategory ? undefined : "page"}
+        aria-label={`전체, 글 ${total}개`}
+      >
+        <span>전체</span>
+        <span class="category-nav__count" aria-hidden="true">{total}</span>
+      </a>
+    </li>
+    {
+      categories.map((category) => (
+        <li>
+          <a
+            href={categoryPath(kind, category.slug)}
+            aria-current={selectedCategory === category.slug ? "page" : undefined}
+            aria-label={`${category.label}, 글 ${category.count}개`}
+          >
+            <span>{category.label}</span>
+            <span class="category-nav__count" aria-hidden="true">{category.count}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .category-nav {
+    margin: -1.75rem 0 2.5rem;
+  }
+
+  .category-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .category-nav a {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 0.35rem 0.8rem;
+    font-size: 0.92rem;
+    font-weight: 650;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .category-nav a:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .category-nav a[aria-current="page"] {
+    border-color: var(--accent);
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+
+  .category-nav__count {
+    display: inline-grid;
+    min-width: 1.45rem;
+    min-height: 1.45rem;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    padding: 0 0.35rem;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a[aria-current="page"] .category-nav__count {
+    background: var(--surface);
+    color: var(--accent-strong);
+  }
+
+  @media (max-width: 560px) {
+    .category-nav {
+      margin-top: -2rem;
+    }
+
+    .category-nav ul {
+      gap: 0.4rem;
+    }
+
+    .category-nav a {
+      min-height: 44px;
+      padding-inline: 0.7rem;
+    }
+  }
+</style>

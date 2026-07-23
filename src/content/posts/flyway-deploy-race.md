@@ -3,6 +3,7 @@ title: "Flyway 배포 순서에서 생긴 out-of-order와 중복 마이그레이
 slug: "flyway-deploy-race"
 description: "AI 사이드 프로젝트에서 머지·배포 순서가 어긋나 낮은 버전이 뒤늦게 나타나고, 같은 백필이 다른 버전으로 두 번 적용된 원인을 보여준다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-07-11"
 updatedAt: "2026-07-23"
 draft: false

@@ -3,6 +3,7 @@ title: "Claude Code Java 코드 분석에서 jdtls와 IntelliJ /ide 비교"
 slug: "jdtls-intellij-lsp"
 description: "IntelliJ /ide는 IDE 진단을 재사용하고 jdtls는 정의·참조·호출 계층까지 별도 인덱싱한다는 차이로 선택 기준을 세운다."
 kind: "note"
+category: "ide"
 publishedAt: "2026-04-08"
 updatedAt: "2026-07-23"
 draft: false

@@ -3,6 +3,7 @@ title: "범용 AI 개발 프레임워크 대신 프로젝트 전용 파이프라
 slug: "custom-ai-pipeline"
 description: "범용 프레임워크의 계획·TDD·리뷰 원칙은 가져오되, 프로젝트별 SQL·호환성 검증은 작은 전용 스킬로 만든 판단을 설명한다."
 kind: "tech"
+category: "ai"
 publishedAt: "2026-04-11"
 updatedAt: "2026-07-23"
 draft: false

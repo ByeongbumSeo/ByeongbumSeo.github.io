@@ -3,6 +3,7 @@ title: "MySQL 조건부 MAX 풀스캔과 ORDER BY DESC LIMIT 1의 적용 조건"
 slug: "mysql-max-vs-limit"
 description: "published가 인덱스 밖에 있어 조건부 MAX 최적화가 깨진 원인과, 역순 인덱스 탐색이 유효한 데이터 분포 조건을 설명한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-04-06"
 updatedAt: "2026-07-23"
 draft: false

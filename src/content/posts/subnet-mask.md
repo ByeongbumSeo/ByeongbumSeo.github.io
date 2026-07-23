@@ -3,6 +3,7 @@ title: "서브넷, 서브넷마스크"
 slug: "subnet-mask"
 description: "IP, 서브넷, 서브넷 마스크, 네트워크 주소 계산을 정리한다."
 kind: "tech"
+category: "network"
 publishedAt: "2024-01-06"
 draft: false
 deprecated: false

@@ -3,6 +3,7 @@ title: "마크다운 사용법"
 slug: "markdown-guide"
 description: "Markdown 문법과 GitHub 문서 작성에 필요한 기본 사용법을 정리한다."
 kind: "note"
+category: "writing"
 publishedAt: "2023-11-25"
 draft: false
 deprecated: false

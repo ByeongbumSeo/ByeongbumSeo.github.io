@@ -3,6 +3,7 @@ title: "사용 중인 Port 찾아서 Kill하기"
 slug: "kill-port"
 description: "사용 중인 포트를 찾고 프로세스를 종료하는 명령어를 정리한다."
 kind: "note"
+category: "linux"
 publishedAt: "2023-12-22"
 draft: false
 deprecated: false

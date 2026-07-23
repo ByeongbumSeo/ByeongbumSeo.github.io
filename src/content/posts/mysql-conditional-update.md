@@ -3,6 +3,7 @@ title: "Check-Then-Act 동시성 문제를 조건부 UPDATE로 막은 이유"
 slug: "mysql-conditional-update"
 description: "일반 SELECT와 UPDATE 사이의 경쟁을 MVCC 문제와 구분하고, 변경 조건을 UPDATE에 넣어 원자적으로 판정한 이유를 설명한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-03-26"
 updatedAt: "2026-07-23"
 draft: false

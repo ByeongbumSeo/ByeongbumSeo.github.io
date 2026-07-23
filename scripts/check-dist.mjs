@@ -58,8 +58,21 @@ if (fs.existsSync(distDir)) {
   if (fs.existsSync(path.join(distDir, "posts/good-developer/index.html"))) {
     errors.push("Draft post good-developer was generated");
   }
-  if (!fs.existsSync(path.join(distDir, "rss.xml"))) errors.push("rss.xml was not generated");
-  if (!fs.existsSync(path.join(distDir, "sitemap-index.xml"))) errors.push("sitemap-index.xml was not generated");
+
+  const requiredOutputs = [
+    "rss.xml",
+    "sitemap-index.xml",
+    "search/index.html",
+    "tags/index.html",
+    "tech/java/index.html",
+    "notes/ide/index.html",
+    "diary/work-retrospective/index.html",
+    "pagefind/pagefind.js",
+    "pagefind/pagefind-entry.json"
+  ];
+  for (const output of requiredOutputs) {
+    if (!fs.existsSync(path.join(distDir, output))) errors.push(`${output} was not generated`);
+  }
 }
 
 if (errors.length > 0) {

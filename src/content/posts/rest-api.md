@@ -3,6 +3,7 @@ title: "RESTful API"
 slug: "rest-api"
 description: "RESTful API의 개념, 구성 요소, 장점, URI 설계 원칙을 정리한다."
 kind: "tech"
+category: "web"
 publishedAt: "2024-04-16"
 draft: false
 deprecated: false

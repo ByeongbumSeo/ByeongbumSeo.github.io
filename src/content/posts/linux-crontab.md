@@ -3,6 +3,7 @@ title: "Linux Crontab"
 slug: "linux-crontab"
 description: "Linux crontab 사용법과 스케줄링 기본 개념을 정리한다."
 kind: "tech"
+category: "linux"
 publishedAt: "2023-12-02"
 draft: false
 deprecated: false

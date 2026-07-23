@@ -3,6 +3,7 @@ title: "작업 중 다른 Git 브랜치를 볼 때 stash와 worktree 비교"
 slug: "git-stash-worktree"
 description: "짧은 브랜치 전환에는 stash, 두 작업 공간을 함께 열 때는 worktree, 장기 중단에는 WIP 브랜치를 고르는 기준을 제시한다."
 kind: "note"
+category: "git"
 publishedAt: "2026-04-02"
 updatedAt: "2026-07-23"
 draft: false

@@ -3,6 +3,7 @@ title: "SSH(대칭키, 비대칭키)"
 slug: "ssh"
 description: "SSH의 대칭키, 비대칭키, 공개키 인증 흐름을 정리한다."
 kind: "tech"
+category: "network"
 publishedAt: "2023-12-13"
 draft: false
 deprecated: false

@@ -3,6 +3,7 @@ title: "Claude Code 설정 범위 — User·Project·Local·Managed 비교"
 slug: "claude-code-settings-scope"
 description: "개인 공통 설정, 저장소 공유 설정, 로컬 실험과 조직 정책을 플러그인·스킬·Hook의 사용 대상에 따라 배치하는 기준을 제시한다."
 kind: "note"
+category: "ai"
 publishedAt: "2026-04-06"
 updatedAt: "2026-07-23"
 draft: false

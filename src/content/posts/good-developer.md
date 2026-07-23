@@ -3,6 +3,7 @@ title: "좋은 개발자란 무엇일까(작성 중)"
 slug: "good-developer"
 description: "좋은 개발자에 대한 기준을 정리 중인 초안이다."
 kind: "diary"
+category: "work-retrospective"
 publishedAt: "2024-03-06"
 draft: true
 deprecated: false

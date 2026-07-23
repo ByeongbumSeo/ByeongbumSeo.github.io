@@ -1,0 +1,884 @@
+---
+import { TAXONOMY } from "../lib/taxonomy";
+
+const taxonomy = Object.entries(TAXONOMY).map(([slug, section]) => ({
+  slug,
+  label: section.label,
+  categories: section.categories.map((category) => ({
+    slug: category.slug,
+    label: category.label
+  }))
+}));
+
+const categories = [
+  ...new Map(
+    taxonomy
+      .flatMap((section) => section.categories)
+      .map((category) => [category.slug, category])
+  ).values()
+];
+const isDev = import.meta.env.DEV;
+const initialStatus = isDev
+  ? "개발 서버에서는 검색 인덱스를 사용할 수 없습니다. npm run build 후 npm run preview로 확인해 주세요."
+  : "검색 인덱스를 준비하고 있습니다.";
+---
+
+<section
+  class="search-panel"
+  data-search-panel
+  data-dev={isDev ? "true" : "false"}
+  data-taxonomy={JSON.stringify(taxonomy)}
+>
+  <form class="search-form" role="search" aria-label="블로그 글 검색" data-search-form>
+    <div class="search-query">
+      <label for="post-search-query">포스트 검색</label>
+      <div class="search-query__controls">
+        <input
+          id="post-search-query"
+          type="search"
+          name="q"
+          placeholder="제목이나 본문에서 검색"
+          autocomplete="off"
+          enterkeyhint="search"
+          spellcheck="false"
+          aria-describedby="post-search-hint"
+          aria-controls="search-results"
+          data-search-input
+          disabled
+        />
+        <button type="submit" data-search-submit disabled>검색</button>
+      </div>
+      <p id="post-search-hint">한글 검색과 아래 필터를 함께 사용할 수 있습니다.</p>
+    </div>
+
+    <fieldset class="search-filters" data-search-filters disabled>
+      <legend>검색 필터</legend>
+      <label>
+        <span>섹션</span>
+        <select name="kind" data-kind-filter>
+          <option value="">전체</option>
+          {taxonomy.map((section) => <option value={section.slug}>{section.label}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>카테고리</span>
+        <select name="category" data-category-filter>
+          <option value="">전체</option>
+          {categories.map((category) => <option value={category.slug}>{category.label}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>태그</span>
+        <select name="tag" data-tag-filter>
+          <option value="">전체</option>
+        </select>
+      </label>
+      <button class="reset-button" type="reset" data-search-reset>초기화</button>
+    </fieldset>
+  </form>
+
+  <p
+    class="search-status"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    data-state={isDev ? "notice" : "loading"}
+    data-search-status
+  >
+    {initialStatus}
+  </p>
+
+  <ol id="search-results" class="search-results" aria-label="검색 결과" data-search-results hidden></ol>
+
+  <noscript>
+    <p class="search-noscript">검색 기능을 사용하려면 JavaScript를 활성화해 주세요.</p>
+  </noscript>
+</section>
+
+<script>
+  type TaxonomyCategory = {
+    slug: string;
+    label: string;
+  };
+
+  type TaxonomySection = {
+    slug: string;
+    label: string;
+    categories: TaxonomyCategory[];
+  };
+
+  type FilterCounts = Record<string, Record<string, number>>;
+  type SelectedFilters = Record<string, string>;
+
+  type PagefindData = {
+    url?: unknown;
+    excerpt?: unknown;
+    content?: unknown;
+    meta?: Record<string, unknown>;
+    filters?: Record<string, unknown>;
+  };
+
+  type PagefindResult = {
+    data: () => Promise<PagefindData>;
+  };
+
+  type PagefindResponse = {
+    results: PagefindResult[];
+    filters?: FilterCounts;
+    totalFilters?: FilterCounts;
+  };
+
+  type PagefindApi = {
+    init: () => Promise<void> | void;
+    filters: () => Promise<FilterCounts>;
+    search: (term: string | null, options: { filters: SelectedFilters }) => Promise<PagefindResponse>;
+    preload?: (term: string | null, options: { filters: SelectedFilters }) => Promise<void> | void;
+  };
+
+  type NormalizedResult = {
+    url: string;
+    title: string;
+    description: string;
+    excerpt: string;
+    date: string;
+    dateValue: number;
+    kind: string;
+    category: string;
+    tags: string[];
+  };
+
+  const getRequiredElement = <T extends Element>(root: ParentNode, selector: string): T => {
+    const element = root.querySelector<T>(selector);
+    if (!element) throw new Error(`Search UI element is missing: ${selector}`);
+    return element;
+  };
+
+  const firstString = (value: unknown): string => {
+    if (typeof value === "string") return value.trim();
+    if (Array.isArray(value)) {
+      const first = value.find((item) => typeof item === "string");
+      return typeof first === "string" ? first.trim() : "";
+    }
+    return "";
+  };
+
+  const stringList = (value: unknown): string[] => {
+    if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const plainText = (value: string): string => {
+    const template = document.createElement("template");
+    template.innerHTML = value;
+    return (template.content.textContent ?? "").replace(/\s+/g, " ").trim();
+  };
+
+  const safeExcerpt = (value: string): DocumentFragment => {
+    const source = document.createElement("template");
+    source.innerHTML = value;
+    const output = document.createDocumentFragment();
+
+    const appendNodes = (nodes: NodeListOf<ChildNode> | ChildNode[], parent: Node) => {
+      for (const node of nodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          parent.appendChild(document.createTextNode(node.textContent ?? ""));
+          continue;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+        const element = node as HTMLElement;
+        if (element.tagName === "MARK") {
+          const mark = document.createElement("mark");
+          appendNodes(Array.from(element.childNodes), mark);
+          parent.appendChild(mark);
+        } else {
+          appendNodes(Array.from(element.childNodes), parent);
+        }
+      }
+    };
+
+    appendNodes(Array.from(source.content.childNodes), output);
+    return output;
+  };
+
+  const safeResultUrl = (value: unknown): string => {
+    const rawUrl = firstString(value);
+    if (!rawUrl) return "#";
+    try {
+      const url = new URL(rawUrl, window.location.origin);
+      if (url.origin !== window.location.origin || !["http:", "https:"].includes(url.protocol)) return "#";
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return "#";
+    }
+  };
+
+  const fallbackTitle = (url: string): string => {
+    if (url === "#") return "제목 없는 글";
+    try {
+      const segments = new URL(url, window.location.origin).pathname.split("/").filter(Boolean);
+      const slug = decodeURIComponent(segments.at(-1) ?? "");
+      return slug ? slug.replace(/[-_]+/g, " ") : "제목 없는 글";
+    } catch {
+      return "제목 없는 글";
+    }
+  };
+
+  const formatResultDate = (value: unknown): { label: string; timestamp: number } => {
+    const rawDate = firstString(value);
+    if (!rawDate) return { label: "", timestamp: 0 };
+    const parsed = new Date(rawDate);
+    if (Number.isNaN(parsed.getTime())) return { label: rawDate, timestamp: 0 };
+    return {
+      label: new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      }).format(parsed),
+      timestamp: parsed.getTime()
+    };
+  };
+
+  const setupSearchPanel = async (root: HTMLElement) => {
+    if (root.dataset.initialized === "true") return;
+    root.dataset.initialized = "true";
+
+    const form = getRequiredElement<HTMLFormElement>(root, "[data-search-form]");
+    const input = getRequiredElement<HTMLInputElement>(root, "[data-search-input]");
+    const submitButton = getRequiredElement<HTMLButtonElement>(root, "[data-search-submit]");
+    const filterFieldset = getRequiredElement<HTMLFieldSetElement>(root, "[data-search-filters]");
+    const kindSelect = getRequiredElement<HTMLSelectElement>(root, "[data-kind-filter]");
+    const categorySelect = getRequiredElement<HTMLSelectElement>(root, "[data-category-filter]");
+    const tagSelect = getRequiredElement<HTMLSelectElement>(root, "[data-tag-filter]");
+    const status = getRequiredElement<HTMLElement>(root, "[data-search-status]");
+    const results = getRequiredElement<HTMLOListElement>(root, "[data-search-results]");
+    const taxonomy = JSON.parse(root.dataset.taxonomy ?? "[]") as TaxonomySection[];
+    const kindLabels = new Map(taxonomy.map((section) => [section.slug, section.label]));
+    let availableFilters: FilterCounts = {};
+    let pagefind: PagefindApi | undefined;
+    let debounceTimer: number | undefined;
+    let requestSequence = 0;
+    let composing = false;
+
+    const setStatus = (message: string, state = "ready") => {
+      status.textContent = message;
+      status.dataset.state = state;
+    };
+
+    const setBusy = (busy: boolean) => {
+      form.setAttribute("aria-busy", busy ? "true" : "false");
+      submitButton.disabled = busy;
+    };
+
+    const option = (value: string, label: string, selected = false) => {
+      const element = document.createElement("option");
+      element.value = value;
+      element.textContent = label;
+      element.selected = selected;
+      return element;
+    };
+
+    const categoryEntries = (kind: string): TaxonomyCategory[] => {
+      const source = kind
+        ? (taxonomy.find((section) => section.slug === kind)?.categories ?? [])
+        : taxonomy.flatMap((section) => section.categories);
+      return [...new Map(source.map((category) => [category.slug, category])).values()];
+    };
+
+    const renderCategoryOptions = (kind: string, selected: string) => {
+      const indexedCategories = availableFilters.category ?? {};
+      const entries = categoryEntries(kind);
+      const bySlug = new Map(entries.map((category) => [category.slug, category]));
+
+      for (const slug of Object.keys(indexedCategories)) {
+        if (!bySlug.has(slug)) bySlug.set(slug, { slug, label: slug });
+      }
+      if (selected && !bySlug.has(selected)) bySlug.set(selected, { slug: selected, label: selected });
+
+      categorySelect.replaceChildren(option("", "전체", !selected));
+      for (const category of bySlug.values()) {
+        if (
+          Object.keys(indexedCategories).length > 0 &&
+          !(category.slug in indexedCategories) &&
+          category.slug !== selected
+        ) {
+          continue;
+        }
+        categorySelect.append(option(category.slug, category.label, category.slug === selected));
+      }
+    };
+
+    const renderTagOptions = (selected: string) => {
+      const tags = Object.entries(availableFilters.tag ?? {}).sort(([left], [right]) =>
+        left.localeCompare(right, "ko")
+      );
+      tagSelect.replaceChildren(option("", "전체", !selected));
+      for (const [tag, count] of tags) {
+        tagSelect.append(option(tag, `${tag} (${count.toLocaleString("ko-KR")})`, tag === selected));
+      }
+      if (selected && !tags.some(([tag]) => tag === selected)) {
+        tagSelect.append(option(selected, selected, true));
+      }
+    };
+
+    const readUrlState = () => {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        q: params.get("q") ?? "",
+        kind: params.get("kind") ?? "",
+        category: params.get("category") ?? "",
+        tag: params.get("tag") ?? ""
+      };
+    };
+
+    const applyUrlState = () => {
+      const state = readUrlState();
+      input.value = state.q;
+      kindSelect.value = kindLabels.has(state.kind) ? state.kind : "";
+      renderCategoryOptions(kindSelect.value, state.category);
+      renderTagOptions(state.tag);
+    };
+
+    const selectedFilters = (): SelectedFilters => {
+      const filters: SelectedFilters = {};
+      if (kindSelect.value) filters.kind = kindSelect.value;
+      if (categorySelect.value) filters.category = categorySelect.value;
+      if (tagSelect.value) filters.tag = tagSelect.value;
+      return filters;
+    };
+
+    const syncUrl = () => {
+      const url = new URL(window.location.href);
+      const values = {
+        q: input.value.trim(),
+        kind: kindSelect.value,
+        category: categorySelect.value,
+        tag: tagSelect.value
+      };
+
+      for (const [key, value] of Object.entries(values)) {
+        if (value) url.searchParams.set(key, value);
+        else url.searchParams.delete(key);
+      }
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    };
+
+    const resolveKindLabel = (value: string) => kindLabels.get(value) ?? value;
+
+    const resolveCategoryLabel = (kind: string, value: string) => {
+      if (!value) return "";
+      const section = taxonomy.find((candidate) => candidate.slug === kind);
+      const scopedCategory = section?.categories.find((category) => category.slug === value);
+      if (scopedCategory) return scopedCategory.label;
+      for (const candidate of taxonomy) {
+        const category = candidate.categories.find((item) => item.slug === value);
+        if (category) return category.label;
+      }
+      return value;
+    };
+
+    const normalizeResult = async (result: PagefindResult): Promise<NormalizedResult> => {
+      let data: PagefindData = {};
+      try {
+        data = await result.data();
+      } catch {
+        // A single damaged result should not prevent the rest of the result list from rendering.
+      }
+
+      const meta = data.meta ?? {};
+      const indexedFilters = data.filters ?? {};
+      const url = safeResultUrl(data.url);
+      const excerpt = firstString(data.excerpt) || firstString(data.content);
+      const kindValue = firstString(meta.kind) || firstString(indexedFilters.kind);
+      const categoryValue = firstString(meta.category) || firstString(indexedFilters.category);
+      const date = formatResultDate(meta.date);
+      const description =
+        firstString(meta.description) ||
+        plainText(excerpt) ||
+        "이 글에는 별도의 설명이 없습니다.";
+
+      return {
+        url,
+        title: firstString(meta.title) || fallbackTitle(url),
+        description,
+        excerpt,
+        date: date.label,
+        dateValue: date.timestamp,
+        kind: resolveKindLabel(kindValue),
+        category: resolveCategoryLabel(kindValue, categoryValue),
+        tags: stringList(indexedFilters.tag)
+      };
+    };
+
+    const renderResults = (items: NormalizedResult[], showExcerpt: boolean) => {
+      const fragment = document.createDocumentFragment();
+
+      for (const item of items) {
+        const listItem = document.createElement("li");
+        const article = document.createElement("article");
+        article.className = "search-result";
+
+        const meta = document.createElement("div");
+        meta.className = "search-result__meta";
+        const metaValues = [item.kind, item.category, item.date].filter(Boolean);
+        for (const [index, value] of metaValues.entries()) {
+          if (index > 0) {
+            const separator = document.createElement("span");
+            separator.className = "search-result__separator";
+            separator.setAttribute("aria-hidden", "true");
+            separator.textContent = "·";
+            meta.append(separator);
+          }
+          const span = document.createElement("span");
+          span.textContent = value;
+          meta.append(span);
+        }
+        if (meta.childElementCount > 0) article.append(meta);
+
+        const heading = document.createElement("h2");
+        const link = document.createElement("a");
+        link.href = item.url;
+        link.textContent = item.title;
+        if (item.url === "#") link.setAttribute("aria-disabled", "true");
+        heading.append(link);
+        article.append(heading);
+
+        const description = document.createElement("p");
+        description.className = "search-result__description";
+        description.textContent = item.description;
+        article.append(description);
+
+        if (showExcerpt && item.excerpt && plainText(item.excerpt) !== item.description) {
+          const excerpt = document.createElement("p");
+          excerpt.className = "search-result__excerpt";
+          excerpt.append(safeExcerpt(item.excerpt));
+          article.append(excerpt);
+        }
+
+        if (item.tags.length > 0) {
+          const tags = document.createElement("div");
+          tags.className = "search-result__tags";
+          tags.setAttribute("aria-label", "태그");
+          for (const tag of item.tags.slice(0, 6)) {
+            const tagLink = document.createElement("a");
+            tagLink.href = `/tags/${encodeURIComponent(tag)}/`;
+            tagLink.textContent = tag;
+            tags.append(tagLink);
+          }
+          article.append(tags);
+        }
+
+        listItem.append(article);
+        fragment.append(listItem);
+      }
+
+      results.replaceChildren(fragment);
+      results.hidden = items.length === 0;
+    };
+
+    const showPrompt = () => {
+      requestSequence += 1;
+      results.replaceChildren();
+      results.hidden = true;
+      setBusy(false);
+      setStatus("검색어를 입력하거나 필터를 선택해 주세요.");
+    };
+
+    const runSearch = async (updateUrl = true) => {
+      if (!pagefind) return;
+      if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
+      if (updateUrl) syncUrl();
+
+      const query = input.value.trim();
+      const filters = selectedFilters();
+      if (!query && Object.keys(filters).length === 0) {
+        showPrompt();
+        return;
+      }
+
+      const sequence = ++requestSequence;
+      setBusy(true);
+      setStatus("검색하고 있습니다.", "loading");
+
+      try {
+        const response = await pagefind.search(query || null, { filters });
+        if (sequence !== requestSequence) return;
+
+        const normalized = await Promise.all(response.results.map(normalizeResult));
+        if (sequence !== requestSequence) return;
+        if (!query) normalized.sort((left, right) => right.dateValue - left.dateValue);
+
+        renderResults(normalized, Boolean(query));
+        setBusy(false);
+        if (normalized.length === 0) {
+          setStatus("조건에 맞는 글을 찾지 못했습니다.", "empty");
+        } else {
+          setStatus(`${normalized.length.toLocaleString("ko-KR")}개의 글을 찾았습니다.`);
+        }
+      } catch {
+        if (sequence !== requestSequence) return;
+        results.replaceChildren();
+        results.hidden = true;
+        setBusy(false);
+        setStatus("검색 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.", "error");
+      }
+    };
+
+    const scheduleSearch = () => {
+      requestSequence += 1;
+      syncUrl();
+      if (!pagefind) return;
+      if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
+      const query = input.value.trim();
+      if (query) {
+        void Promise.resolve(pagefind.preload?.(query, { filters: selectedFilters() })).catch(() => {});
+      }
+      debounceTimer = window.setTimeout(() => void runSearch(false), 280);
+    };
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void runSearch();
+    });
+
+    form.addEventListener("reset", (event) => {
+      event.preventDefault();
+      input.value = "";
+      kindSelect.value = "";
+      renderCategoryOptions("", "");
+      renderTagOptions("");
+      syncUrl();
+      showPrompt();
+      input.focus();
+    });
+
+    input.addEventListener("compositionstart", () => {
+      composing = true;
+    });
+
+    input.addEventListener("compositionend", () => {
+      composing = false;
+      scheduleSearch();
+    });
+
+    input.addEventListener("input", () => {
+      if (!composing) scheduleSearch();
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !input.value) return;
+      event.preventDefault();
+      input.value = "";
+      scheduleSearch();
+    });
+
+    kindSelect.addEventListener("change", () => {
+      const currentCategory = categorySelect.value;
+      const allowedCategories = new Set(categoryEntries(kindSelect.value).map((category) => category.slug));
+      renderCategoryOptions(
+        kindSelect.value,
+        !kindSelect.value || allowedCategories.has(currentCategory) ? currentCategory : ""
+      );
+      void runSearch();
+    });
+    categorySelect.addEventListener("change", () => void runSearch());
+    tagSelect.addEventListener("change", () => void runSearch());
+
+    window.addEventListener("popstate", () => {
+      applyUrlState();
+      void runSearch(false);
+    });
+
+    if (root.dataset.dev === "true") return;
+
+    try {
+      const modulePath = "/pagefind/pagefind.js";
+      pagefind = (await import(/* @vite-ignore */ modulePath)) as unknown as PagefindApi;
+      await pagefind.init();
+      availableFilters = await pagefind.filters();
+      applyUrlState();
+      input.disabled = false;
+      submitButton.disabled = false;
+      filterFieldset.disabled = false;
+
+      const state = readUrlState();
+      if (state.q || state.kind || state.category || state.tag) {
+        await runSearch(false);
+      } else {
+        showPrompt();
+      }
+    } catch {
+      setBusy(false);
+      setStatus(
+        "검색 인덱스를 불러오지 못했습니다. npm run build 후 npm run preview로 확인해 주세요.",
+        "error"
+      );
+    }
+  };
+
+  document
+    .querySelectorAll<HTMLElement>("[data-search-panel]")
+    .forEach((root) => void setupSearchPanel(root));
+</script>
+
+<style>
+  .search-panel {
+    max-width: 920px;
+  }
+
+  .search-form {
+    display: grid;
+    gap: 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: var(--shadow);
+  }
+
+  .search-query {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .search-query > label,
+  .search-filters label > span,
+  .search-filters legend {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .search-query__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+  }
+
+  input,
+  select,
+  button {
+    min-height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+  }
+
+  input::placeholder {
+    color: var(--muted);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  button:focus-visible {
+    border-color: var(--accent);
+    outline: 3px solid rgb(15 118 110 / 0.22);
+    outline-offset: 2px;
+  }
+
+  button {
+    cursor: pointer;
+    padding: 0.55rem 1rem;
+    font-weight: 700;
+  }
+
+  .search-query__controls button {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .search-query__controls button:hover {
+    border-color: var(--accent-strong);
+    background: var(--accent-strong);
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+
+  .search-query p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+
+  .search-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: 0.75rem;
+    align-items: end;
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .search-filters legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .search-filters label {
+    display: grid;
+    min-width: 0;
+    gap: 0.35rem;
+  }
+
+  .reset-button {
+    background: var(--surface-muted);
+    white-space: nowrap;
+  }
+
+  .reset-button:hover {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .search-status,
+  .search-noscript {
+    min-height: 1.8em;
+    margin: 1.25rem 0;
+    color: var(--muted);
+  }
+
+  .search-status[data-state="error"] {
+    color: var(--danger);
+  }
+
+  .search-status[data-state="notice"] {
+    color: var(--warning);
+  }
+
+  .search-results {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 760px) {
+    .search-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .reset-button {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .search-query__controls {
+      grid-template-columns: 1fr;
+    }
+
+    .search-query__controls button {
+      width: 100%;
+    }
+  }
+</style>
+
+<style is:global>
+  .search-panel .search-result {
+    display: grid;
+    gap: 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: clamp(1rem, 3vw, 1.35rem);
+  }
+
+  .search-panel .search-result:hover {
+    border-color: rgb(15 118 110 / 0.42);
+  }
+
+  .search-panel .search-result__meta,
+  .search-panel .search-result__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .search-panel .search-result__separator {
+    color: var(--line);
+  }
+
+  .search-panel .search-result h2 {
+    margin: 0;
+    font-size: clamp(1.08rem, 2vw, 1.28rem);
+    line-height: 1.45;
+  }
+
+  .search-panel .search-result h2 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .search-panel .search-result h2 a:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.2em;
+  }
+
+  .search-panel .search-result h2 a[aria-disabled="true"] {
+    pointer-events: none;
+  }
+
+  .search-panel .search-result__description,
+  .search-panel .search-result__excerpt {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.68;
+  }
+
+  .search-panel .search-result__excerpt {
+    border-left: 2px solid var(--line);
+    padding-left: 0.75rem;
+    font-size: 0.92rem;
+  }
+
+  .search-panel .search-result__excerpt mark {
+    border-radius: 3px;
+    background: #d9f3ef;
+    color: inherit;
+    padding: 0 0.08em;
+  }
+
+  .search-panel .search-result__tags a {
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--muted);
+    padding: 0.12rem 0.5rem;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+
+  .search-panel .search-result__tags a:hover {
+    color: var(--accent-strong);
+  }
+</style>

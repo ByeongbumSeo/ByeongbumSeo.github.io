@@ -3,6 +3,7 @@ title: "Claude Code와 IntelliJ 진단 연결 — 내장 터미널 자동 연결
 slug: "intellij-claude-diagnostics"
 description: "내장 터미널에서는 IDE 연결이 자동이고 외부 터미널에서는 /ide가 필요한 차이를 진단 공유 동작으로 풀어낸다."
 kind: "note"
+category: "ide"
 publishedAt: "2026-03-26"
 updatedAt: "2026-07-23"
 draft: false

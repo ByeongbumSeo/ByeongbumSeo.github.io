@@ -19,8 +19,12 @@ const navItems = [
   { href: "/tech/", label: "Tech" },
   { href: "/notes/", label: "Notes" },
   { href: "/diary/", label: "Diary" },
+  { href: "/tags/", label: "Tags" },
+  { href: "/search/", label: "Search" },
   { href: "/about/", label: "About" }
 ];
+
+const isCurrentPath = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
 ---
 
 <!doctype html>
@@ -58,7 +62,7 @@ const navItems = [
         <nav class="site-nav" aria-label="Primary">
           {
             navItems.map((item) => (
-              <a href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
+              <a href={item.href} aria-current={isCurrentPath(item.href) ? "page" : undefined}>
                 {item.label}
               </a>
             ))

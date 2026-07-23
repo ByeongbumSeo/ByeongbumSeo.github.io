@@ -1,3 +1,5 @@
+import { TAXONOMY } from "./taxonomy";
+
 export const SITE = {
   title: "범범의 연습장",
   description: "서병범이 일하며 배우고 고민한 내용을 남기는 연습장입니다.",
@@ -8,13 +10,13 @@ export const SITE = {
 };
 
 export const SECTION_LABELS = {
-  tech: "Tech",
-  note: "Notes",
-  diary: "Diary"
+  tech: TAXONOMY.tech.label,
+  note: TAXONOMY.note.label,
+  diary: TAXONOMY.diary.label
 } as const;
 
 export const SECTION_PATHS = {
-  tech: "/tech/",
-  note: "/notes/",
-  diary: "/diary/"
+  tech: TAXONOMY.tech.path,
+  note: TAXONOMY.note.path,
+  diary: TAXONOMY.diary.path
 } as const;

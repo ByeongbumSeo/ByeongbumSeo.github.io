@@ -3,6 +3,7 @@ title: "Ajax, Axios, fetch"
 slug: "ajax-axios-fetch"
 description: "Ajax, Axios, Fetch의 차이와 비동기 HTTP 요청 방식을 정리한다."
 kind: "tech"
+category: "web"
 publishedAt: "2024-04-04"
 draft: false
 deprecated: false

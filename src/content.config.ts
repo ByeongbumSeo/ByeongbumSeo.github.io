@@ -1,6 +1,7 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { isCategoryForKind } from "./lib/taxonomy";
 
 const slugSchema = z
   .string()
@@ -29,6 +30,7 @@ const posts = defineCollection({
       slug: slugSchema,
       description: z.string().min(1),
       kind: z.enum(["tech", "note", "diary"]),
+      category: slugSchema,
       publishedAt: z.coerce.date(),
       updatedAt: z.coerce.date().optional(),
       draft: z.boolean().default(false),
@@ -46,6 +48,13 @@ const posts = defineCollection({
       references: z.array(referenceSchema).default([])
     })
     .superRefine((data, context) => {
+      if (!isCategoryForKind(data.kind, data.category)) {
+        context.addIssue({
+          code: "custom",
+          path: ["category"],
+          message: `${data.category} is not a valid category for ${data.kind}`
+        });
+      }
       if (data.updatedAt && data.updatedAt < data.publishedAt) {
         context.addIssue({
           code: "custom",

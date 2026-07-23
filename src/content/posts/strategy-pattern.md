@@ -3,6 +3,7 @@ title: "헤드퍼스트 디자인패턴 Chapter1, 전략 패턴"
 slug: "strategy-pattern"
 description: "Head First Design Patterns의 전략 패턴 내용을 Java 예시와 함께 정리한다."
 kind: "tech"
+category: "java"
 publishedAt: "2024-02-29"
 draft: false
 deprecated: false

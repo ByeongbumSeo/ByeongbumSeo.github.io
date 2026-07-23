@@ -3,6 +3,7 @@ title: "중복 요청을 유니크 제약으로 한 번만 처리하기"
 slug: "unique-constraint-idempotency"
 description: "SELECT 사전 확인의 경쟁 조건을 유니크 키로 막고, 예상한 DuplicateKeyException만 도메인 중복으로 처리하는 기준을 제시한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-04-01"
 updatedAt: "2026-07-23"
 draft: false

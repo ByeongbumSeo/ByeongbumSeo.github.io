@@ -3,6 +3,7 @@ title: "Github 블로그 생성기(1)"
 slug: "github-pages-blog-setup-1"
 description: "GitHub Pages 블로그 생성 과정을 정리한 첫 번째 기록이다."
 kind: "note"
+category: "blog"
 publishedAt: "2023-11-13"
 draft: false
 deprecated: false

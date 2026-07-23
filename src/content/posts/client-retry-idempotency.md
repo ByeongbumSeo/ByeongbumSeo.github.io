@@ -3,6 +3,7 @@ title: "클라이언트 재시도 중복 차감을 조건부 UPDATE로 막기"
 slug: "client-retry-idempotency"
 description: "재전송된 요청이 OPEN → OPEN도 성공으로 판정해 포인트를 두 번 차감한 원인과, 조건부 UPDATE로 한 번만 처리하게 한 방법을 보여준다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-01-20"
 updatedAt: "2026-07-23"
 draft: false

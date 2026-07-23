@@ -3,6 +3,7 @@ title: "Github 블로그 생성기(2)"
 slug: "github-pages-blog-setup-2"
 description: "GitHub Pages와 Chirpy 설정 과정을 정리한 두 번째 기록이다."
 kind: "note"
+category: "blog"
 publishedAt: "2023-11-15"
 draft: false
 deprecated: false

@@ -3,6 +3,7 @@ title: "UPDATE 중인 행을 SELECT하면 기다릴까 — InnoDB 잠금과 MVCC
 slug: "innodb-lock-mvcc"
 description: "한 트랜잭션이 행을 수정하는 동안 일반 SELECT와 locking read가 어떻게 다르게 동작하는지 InnoDB의 잠금과 MVCC로 설명한다."
 kind: "tech"
+category: "database"
 publishedAt: "2026-01-20"
 updatedAt: "2026-07-23"
 draft: false

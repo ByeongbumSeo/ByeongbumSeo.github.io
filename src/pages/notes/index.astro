@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import CategoryNav from "../../components/CategoryNav.astro";
 import PostList from "../../components/PostList.astro";
 import { getKindPosts, getPublishedPosts } from "../../lib/posts";
 
@@ -12,5 +13,6 @@ const posts = getKindPosts(await getPublishedPosts(), "note");
     <h1>Notes</h1>
     <p>나중에 다시 찾기 위한 명령어, 도구 사용법, 짧은 지식 노트를 모았습니다.</p>
   </section>
+  <CategoryNav kind="note" posts={posts} />
   <PostList posts={posts} />
 </BaseLayout>
