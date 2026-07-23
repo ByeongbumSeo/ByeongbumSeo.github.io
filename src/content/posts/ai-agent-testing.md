@@ -5,11 +5,15 @@ description: "DAO·매퍼·내부 유틸까지 mock한 테스트가 리팩터링
 kind: "tech"
 category: "ai"
 publishedAt: "2026-04-20"
-updatedAt: "2026-07-23"
+updatedAt: "2026-07-24"
 draft: false
 deprecated: false
 outdated: false
 tags: ["testing", "ai-agent", "java", "testcontainers"]
+series:
+  slug: "ai-agent-server-testing"
+  title: "AI 에이전트와 서버 테스트 전략"
+  order: 1
 relatedPosts: []
 references:
   - title: "ai-testing-rules"

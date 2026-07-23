@@ -48,10 +48,12 @@ export function getCategoryCounts(posts: Post[], kind: PostKind) {
 export function getRelatedPosts(post: Post, posts: Post[], limit = 3) {
   const explicit = post.data.relatedPosts
     .map((slug) => posts.find((candidate) => candidate.data.slug === slug))
-    .filter(Boolean) as Post[];
+    .filter((candidate): candidate is Post => Boolean(candidate))
+    .filter((candidate) => !post.data.series || candidate.data.series?.slug !== post.data.series.slug);
   const explicitSlugs = new Set(explicit.map((candidate) => candidate.data.slug));
   const fallback = posts
     .filter((candidate) => candidate.data.slug !== post.data.slug)
+    .filter((candidate) => !post.data.series || candidate.data.series?.slug !== post.data.series.slug)
     .filter((candidate) => !explicitSlugs.has(candidate.data.slug))
     .map((candidate) => ({
       post: candidate,
