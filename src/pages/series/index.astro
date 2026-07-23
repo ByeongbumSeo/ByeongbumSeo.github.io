@@ -1,0 +1,122 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedPosts, getSeriesGroups, postUrl } from "../../lib/posts";
+
+const seriesGroups = [...getSeriesGroups(await getPublishedPosts()).entries()];
+const latestPublishedAt = (posts: (typeof seriesGroups)[number][1]["posts"]) =>
+  Math.max(...posts.map((post) => post.data.publishedAt.getTime()));
+
+seriesGroups.sort(([, a], [, b]) => latestPublishedAt(b.posts) - latestPublishedAt(a.posts));
+---
+
+<BaseLayout title="Series" description="서로 이어지는 주제의 글을 시리즈별로 모았습니다.">
+  <section class="page-heading">
+    <p class="eyebrow">Connected writing</p>
+    <h1>Series</h1>
+    <p>하나의 주제를 여러 관점과 단계로 이어 쓴 글을 모았습니다.</p>
+  </section>
+
+  <ul class="series-index">
+    {
+      seriesGroups.map(([slug, group]) => (
+        <li class="series-index__item">
+          <article class="series-card">
+            <div class="series-card__heading">
+              <h2>
+                <a href={`/series/${slug}/`} aria-label={`${group.title} 시리즈, 글 ${group.posts.length}개`}>
+                  {group.title}
+                </a>
+              </h2>
+              <span aria-hidden="true">{group.posts.length}편</span>
+            </div>
+            <ol class="series-card__posts">
+              {
+                group.posts.map((post) => (
+                  <li>
+                    <a href={postUrl(post)}>{post.data.title}</a>
+                  </li>
+                ))
+              }
+            </ol>
+          </article>
+        </li>
+      ))
+    }
+  </ul>
+</BaseLayout>
+
+<style>
+  .series-index {
+    display: grid;
+    max-width: 960px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .series-card {
+    height: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .series-card__heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .series-card__heading h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .series-card__heading h2 a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .series-card__heading h2 a:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  .series-card__heading span {
+    flex: none;
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .series-card__posts {
+    margin: 0.9rem 0 0;
+    padding-left: 1.35rem;
+    color: var(--muted);
+  }
+
+  .series-card__posts li + li {
+    margin-top: 0.4rem;
+  }
+
+  .series-card__posts a {
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .series-card__posts a:hover {
+    color: var(--accent-strong);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 720px) {
+    .series-index {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

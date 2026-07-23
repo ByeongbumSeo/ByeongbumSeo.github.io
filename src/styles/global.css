@@ -639,6 +639,16 @@ pre code {
   color: var(--muted);
 }
 
+.series-box__title {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.series-box__title:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
 .series-box nav {
   justify-content: space-between;
 }

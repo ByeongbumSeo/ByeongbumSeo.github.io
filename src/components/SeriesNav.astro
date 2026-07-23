@@ -16,13 +16,13 @@ const next = index >= 0 && index < posts.length - 1 ? posts[index + 1] : undefin
 
 {
   series && (
-    <aside class="series-box" aria-label="Series">
+    <aside class="series-box" aria-label={`${series.title} 시리즈`}>
       <div>
         <span>Series</span>
-        <strong>{series.title}</strong>
+        <strong><a class="series-box__title" href={`/series/${series.slug}/`}>{series.title}</a></strong>
         <small>{series.order} / {posts.length}</small>
       </div>
-      <nav>
+      <nav aria-label={`${series.title} 시리즈 글 이동`}>
         {previous ? <a href={postUrl(previous)}>이전: {previous.data.title}</a> : <span />}
         {next ? <a href={postUrl(next)}>다음: {next.data.title}</a> : <span />}
       </nav>

@@ -16,7 +16,7 @@ const { group } = Astro.props;
 
 <BaseLayout title={`Series: ${group.title}`} description={`${group.title} 시리즈 글 목록입니다.`}>
   <section class="page-heading">
-    <p class="eyebrow">Series</p>
+    <p class="eyebrow"><a href="/series/">Series</a></p>
     <h1>{group.title}</h1>
   </section>
   <PostList posts={group.posts} />

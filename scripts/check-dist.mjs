@@ -63,6 +63,7 @@ if (fs.existsSync(distDir)) {
     "rss.xml",
     "sitemap-index.xml",
     "search/index.html",
+    "series/index.html",
     "tags/index.html",
     "tech/java/index.html",
     "notes/ide/index.html",
