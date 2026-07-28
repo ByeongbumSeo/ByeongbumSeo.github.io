@@ -2,14 +2,14 @@
 title: "IntelliJ에서 사용처가 없는 Jackson getter, 삭제 전에 확인할 것"
 slug: "jackson-reflection-usage"
 description: "IDE가 사용처를 찾지 못한 getter도 Jackson이 런타임에 직렬화할 수 있어, 삭제 전 응답 경로·Lombok·JSON 테스트를 확인해야 함을 보여준다."
-kind: "tech"
-category: "java"
+kind: "diary"
+category: "troubleshooting"
 publishedAt: "2026-04-30"
-updatedAt: "2026-07-23"
+updatedAt: "2026-07-29"
 draft: false
 deprecated: false
 outdated: false
-tags: ["java", "spring", "jackson", "intellij"]
+tags: ["troubleshooting", "java", "spring", "jackson", "intellij"]
 relatedPosts: ["intellij-shortcuts"]
 references:
   - title: "Jackson Databind — POJOPropertiesCollector"

@@ -94,6 +94,11 @@ export const TAXONOMY = {
     description: "일하며 배우고 생각한 과정과 일상의 기록을 남깁니다.",
     categories: [
       {
+        slug: "troubleshooting",
+        label: "트러블슈팅",
+        description: "문제를 발견하고 원인을 추적해 해결한 과정을 기록합니다."
+      },
+      {
         slug: "work-retrospective",
         label: "업무 회고",
         description: "일하면서 겪은 사건, 결정과 배운 점을 돌아봅니다."

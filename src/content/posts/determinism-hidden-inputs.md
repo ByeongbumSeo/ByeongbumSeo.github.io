@@ -1,14 +1,15 @@
 ---
-title: "같은 시드인데 닉네임이 서버마다 달라진 이유"
+title: "랜덤 닉네임 생성 로직에서 결정론이 깨진 이유"
 slug: "determinism-hidden-inputs"
-description: "같은 시드인데도 서버마다 닉네임이 달라진 원인은, 이미 배정된 값을 후보에서 먼저 빼면서 목록의 크기와 위치가 달라졌기 때문이다."
-kind: "tech"
-category: "database"
+description: "같은 시드를 사용했는데도 후보 목록과 DB 상태에 따라 서버마다 다른 닉네임이 만들어진 원인을 추적한 기록이다."
+kind: "diary"
+category: "troubleshooting"
 publishedAt: "2026-07-29"
+updatedAt: "2026-07-29"
 draft: false
 deprecated: false
 outdated: false
-tags: ["java", "mysql", "concurrency", "determinism", "random"]
+tags: ["troubleshooting", "java", "concurrency", "determinism", "random"]
 relatedPosts: ["mysql-conditional-update"]
 references:
   - title: "Java SE 21 API — Random"
@@ -21,7 +22,9 @@ references:
     url: "https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html"
 ---
 
-익명 게시판에서는 작성자의 계정 정보 대신 `형용사 + 명사` 형태의 닉네임을 보여 줬다. `멋진 사자`, `조용한 여우` 같은 이름이다.
+익명 게시판의 랜덤 닉네임 생성 로직을 수정하다 이상한 문제를 만났다. 같은 시드를 사용했는데도 요청을 처리한 서버에 따라 다른 닉네임이 만들어졌다.
+
+이 게시판은 작성자의 계정 정보 대신 `형용사 + 명사` 형태의 닉네임을 보여 줬다. `멋진 사자`, `조용한 여우` 같은 이름이다.
 
 정책은 세 가지였다.
 

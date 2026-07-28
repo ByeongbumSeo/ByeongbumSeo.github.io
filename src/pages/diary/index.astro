@@ -7,11 +7,11 @@ import { getKindPosts, getPublishedPosts } from "../../lib/posts";
 const posts = getKindPosts(await getPublishedPosts(), "diary");
 ---
 
-<BaseLayout title="Diary" description="개발자로 성장하며 남긴 개인 기록과 커리어 고민입니다.">
+<BaseLayout title="Diary" description="일하며 문제를 해결하고 배우고 생각한 과정을 기록합니다.">
   <section class="page-heading">
     <p class="eyebrow">Diary</p>
     <h1>Diary</h1>
-    <p>기술 밖의 고민, 성장 과정, 일하며 느낀 것을 남기는 공간입니다.</p>
+    <p>일하며 문제를 해결하고 배우고 생각한 과정을 남기는 공간입니다.</p>
   </section>
   <CategoryNav kind="diary" posts={posts} />
   <PostList posts={posts} />

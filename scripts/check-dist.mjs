@@ -67,6 +67,7 @@ if (fs.existsSync(distDir)) {
     "tags/index.html",
     "tech/java/index.html",
     "notes/ide/index.html",
+    "diary/troubleshooting/index.html",
     "diary/work-retrospective/index.html",
     "pagefind/pagefind.js",
     "pagefind/pagefind-entry.json"
