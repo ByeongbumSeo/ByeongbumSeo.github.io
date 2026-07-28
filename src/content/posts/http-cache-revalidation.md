@@ -5,7 +5,7 @@ description: "max-age 이후 ETag와 If-None-Match로 캐시를 재검증하는 
 kind: "tech"
 category: "web"
 publishedAt: "2025-05-03"
-updatedAt: "2026-07-23"
+updatedAt: "2026-07-29"
 draft: false
 deprecated: false
 outdated: false
@@ -28,6 +28,8 @@ references:
     url: "https://developer.apple.com/documentation/foundation/accessing-cached-data"
   - title: "Apple Developer — URLCache"
     url: "https://developer.apple.com/documentation/foundation/urlcache"
+  - title: "http-etag-study — 이 스터디의 실습 저장소"
+    url: "https://github.com/ByeongbumSeo/http-etag-study"
 ---
 
 사내 네트워크 스터디에서 HTTP 캐시를 세 번에 걸쳐 살펴봤다. 첫 시간에는 ETag와 조건부 요청의 개념을 정리했고, 다음에는 Spring 서버와 iOS 앱에서 예상과 다르게 보이는 응답을 분석했다. 마지막에는 Wireshark로 실제 패킷을 확인했다.
@@ -145,3 +147,5 @@ Shallow ETag만으로 서버 조회 비용이 줄었다고 말해서도 안 된�
 서버 로그는 기록한 시점의 상태를 보여주고, URLSession은 캐시 처리를 마친 결과를 앱에 전달한다. 둘 다 200이라고 해도 실제 네트워크의 응답까지 200이라고 단정할 수는 없었다.
 
 **캐시 문제를 확인할 때는 상태 코드만 보지 않고, 서버 로그·클라이언트 캐시·실제 패킷 중 어디에서 본 결과인지 함께 확인해야 한다.**
+
+이 스터디에서 확인한 흐름은 [http-etag-study](https://github.com/ByeongbumSeo/http-etag-study)에 실행 가능한 예제로 정리했다. `./gradlew bootRun`으로 서버를 띄우고 `./gradlew test`로 ETag와 304 흐름을 직접 확인할 수 있다.
