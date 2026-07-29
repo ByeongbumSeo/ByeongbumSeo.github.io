@@ -1,0 +1,130 @@
+---
+interface Props {
+  chart: string;
+  caption?: string;
+}
+
+const { chart, caption } = Astro.props;
+---
+
+<figure class="mermaid-diagram">
+  <div class="mermaid-diagram__canvas">
+    <div class="mermaid">{chart.trim()}</div>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<script>
+  const diagrams = document.querySelectorAll<HTMLElement>(
+    ".mermaid:not([data-processed='true'])"
+  );
+
+  const renderDiagrams = async (targets: HTMLElement[]) => {
+    const { default: mermaid } = await import("mermaid");
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base",
+      themeVariables: {
+        fontFamily:
+          '"Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+        primaryColor: "#eef3f2",
+        primaryTextColor: "#18201f",
+        primaryBorderColor: "#0f766e",
+        lineColor: "#5d6a67",
+        secondaryColor: "#f2f5f4",
+        tertiaryColor: "#ffffff"
+      },
+      sequence: {
+        mirrorActors: false,
+        useMaxWidth: true
+      }
+    });
+
+    await mermaid.run({ nodes: targets });
+  };
+
+  if (diagrams.length > 0) {
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const visibleDiagrams = entries
+            .filter((entry) => entry.isIntersecting)
+            .map((entry) => entry.target as HTMLElement);
+
+          if (visibleDiagrams.length === 0) {
+            return;
+          }
+
+          visibleDiagrams.forEach((diagram) => observer.unobserve(diagram));
+          void renderDiagrams(visibleDiagrams).catch((error) => {
+            visibleDiagrams.forEach((diagram) => {
+              diagram.dataset.renderError = "true";
+            });
+            console.error("Mermaid rendering failed", error);
+          });
+        },
+        { rootMargin: "240px 0px" }
+      );
+
+      diagrams.forEach((diagram) => observer.observe(diagram));
+    } else {
+      void renderDiagrams(Array.from(diagrams)).catch((error) => {
+        diagrams.forEach((diagram) => {
+          diagram.dataset.renderError = "true";
+        });
+        console.error("Mermaid rendering failed", error);
+      });
+    }
+  }
+</script>
+
+<style>
+  .mermaid-diagram {
+    margin: 1.5rem 0;
+  }
+
+  .mermaid-diagram__canvas {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .mermaid-diagram :global(.mermaid) {
+    min-width: 680px;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    white-space: pre;
+  }
+
+  .mermaid-diagram :global(.mermaid[data-processed="true"]) {
+    display: grid;
+    place-items: center;
+    color: inherit;
+    font-family: inherit;
+    white-space: normal;
+  }
+
+  .mermaid-diagram :global(svg) {
+    display: block;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto;
+  }
+
+  figcaption {
+    margin-top: 0.55rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  @media (max-width: 760px) {
+    .mermaid-diagram__canvas {
+      padding: 0.75rem;
+    }
+  }
+</style>
