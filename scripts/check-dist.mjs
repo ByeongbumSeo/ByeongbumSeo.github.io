@@ -60,6 +60,7 @@ if (fs.existsSync(distDir)) {
   }
 
   const requiredOutputs = [
+    "index.html",
     "rss.xml",
     "sitemap-index.xml",
     "search/index.html",
@@ -74,6 +75,36 @@ if (fs.existsSync(distDir)) {
   ];
   for (const output of requiredOutputs) {
     if (!fs.existsSync(path.join(distDir, output))) errors.push(`${output} was not generated`);
+  }
+
+  const homePath = path.join(distDir, "index.html");
+  if (fs.existsSync(homePath)) {
+    const home = fs.readFileSync(homePath, "utf8");
+    const seriesHeadingIndex = home.indexOf('id="home-series-title"');
+    const latestHeadingIndex = home.indexOf('id="home-latest-title"');
+    const seriesSectionStart = home.lastIndexOf("<section", seriesHeadingIndex);
+    const seriesSectionEnd = home.indexOf("</section>", seriesHeadingIndex);
+    const seriesSection =
+      seriesSectionStart !== -1 && seriesSectionEnd !== -1
+        ? home.slice(seriesSectionStart, seriesSectionEnd + "</section>".length)
+        : "";
+    const homeSeriesCards = [...seriesSection.matchAll(
+      /<li data-home-series-item><a class="home-series-card" href="([^"]+)">[\s\S]*?<strong>([^<]+)<\/strong>/g
+    )].map((match) => ({ href: match[1], title: match[2] }));
+    const expectedHomeSeriesCards = [
+      { href: "/series/handoff-design/", title: "사람과 AI를 위한 핸드오프" },
+      { href: "/series/ai-agent-server-testing/", title: "AI 에이전트와 서버 테스트 전략" }
+    ];
+
+    if (seriesHeadingIndex === -1 || latestHeadingIndex === -1 || seriesHeadingIndex > latestHeadingIndex) {
+      errors.push("Home Series section was not generated before Latest posts");
+    }
+    if (JSON.stringify(homeSeriesCards) !== JSON.stringify(expectedHomeSeriesCards)) {
+      errors.push(`Home curated series cards are invalid: ${JSON.stringify(homeSeriesCards)}`);
+    }
+    if (!/<a class="section-action" href="\/series\/">Series 전체 보기<\/a>/.test(seriesSection)) {
+      errors.push("Home is missing the all-series link");
+    }
   }
 }
 
