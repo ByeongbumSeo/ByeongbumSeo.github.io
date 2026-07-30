@@ -126,7 +126,7 @@ Testcontainers를 사용하면서 실제 DB에서 SQL과 결과 매핑까지 검
 
 AI가 내부 구현을 바꾸더라도 기능은 동일하게 동작해야 한다. 그 동작을 검증하는 테스트는 **AI에게 코드를 맡기기 위한 전제**라고 생각한다.
 
-이 기준을 구현 과정에서도 지키기 위해 ATDD로 완료 조건을 먼저 정하고, TDD로 세부 구현을 진행했다. 그 과정은 [ATDD로 완료 조건을 설정하고 TDD로 구현하기](/posts/atdd-tdd-test-strategy/)에서 이어진다.
+이 기준을 구현 과정에서도 지키기 위해 ATDD로 완료 조건을 먼저 정하고, TDD로 세부 구현을 진행했다. 그 과정은 [인수 조건을 먼저 정하고 TDD로 구현하기](/posts/atdd-tdd-test-strategy/)에서 이어진다.
 
 [^testing-style]: [Martin Fowler가 구분한 두 테스트 방식](https://martinfowler.com/articles/mocksArentStubs.html#ClassicalAndMockistTesting) 가운데 고전파(classical TDD)는 가능한 한 실제 객체를 함께 사용한다. 런던파(mockist TDD)는 테스트 대상과 협력하는 내부 객체를 mock으로 바꾸고 객체 사이의 호출도 검증한다. 고전파가 모든 테스트를 통합 테스트로 만든다는 뜻은 아니다.
 
