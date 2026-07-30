@@ -1,11 +1,11 @@
 ---
 title: "AI 에이전트가 만든 과도한 mock 테스트 줄이기"
 slug: "ai-agent-testing"
-description: "DAO·매퍼·내부 유틸까지 mock한 테스트가 리팩터링과 실제 매핑 오류에 취약했던 이유를 짚고, 외부 경계만 대역으로 두는 원칙을 에이전트 스킬에 반영한 판단을 다룬다."
+description: "AI가 구현을 바꿔도 기능의 동작을 지키도록, 테스트 범위와 mock 사용 기준을 정리했다."
 kind: "tech"
 category: "ai"
 publishedAt: "2026-04-20"
-updatedAt: "2026-07-24"
+updatedAt: "2026-07-30"
 draft: false
 deprecated: false
 outdated: false
@@ -16,159 +16,118 @@ series:
   order: 1
 relatedPosts: []
 references:
-  - title: "ai-testing-rules"
+  - title: "Atipico1/ai-testing-rules"
     url: "https://github.com/Atipico1/ai-testing-rules"
-  - title: "OpenAI Codex"
-    url: "https://github.com/openai/codex"
   - title: "Martin Fowler — Mocks Aren't Stubs"
     url: "https://martinfowler.com/articles/mocksArentStubs.html"
+  - title: "Mockito — BDDMockito"
+    url: "https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/BDDMockito.html"
+  - title: "MyBatis 3 — Mapper XML Files"
+    url: "https://mybatis.org/mybatis-3/sqlmap-xml.html"
   - title: "Testcontainers for Java — Database containers"
     url: "https://java.testcontainers.org/modules/databases/"
 ---
 
-`ai-testing-rules`라는 저장소의 글을 읽다가 눈에 걸리는 주장을 봤다. 저자는 OpenAI Codex 오픈소스의 테스트를 분석해, 내부 trait은 mock하지 않고 HTTP 경계에서만 대역을 사용한다고 정리했다. 그 분석에서 끌어낸 결론은 고전파 테스트의 문장과 닮아 있었다.
+[Atipico1/ai-testing-rules](https://github.com/Atipico1/ai-testing-rules)를 읽다가 OpenAI Codex 저장소의 테스트를 살펴본 부분이 눈에 들어왔다. 내부 코드는 실제로 실행하고, HTTP처럼 시스템 밖으로 이어지는 경계에서만 mock을 사용한다는 내용이다. 고전파[^testing-style]에 가까운 방식이다.
 
-> 내부 구현은 실제로 실행하고, 프로세스 밖의 경계만 대역으로 바꾼다.
+반면 에이전트에게 별다른 기준 없이 테스트 작성을 맡기면 내부 객체 대부분을 mock으로 바꾸곤 한다. DAO와 매퍼의 반환값을 미리 정하고, `verify`로 메서드 호출 여부와 횟수를 확인한다. 런던파[^testing-style]에 가까운 테스트다.
 
-그런데 내가 에이전트에게 "테스트 짜줘"라고 요청했을 때 나온 코드는 반대였다. DAO와 유틸리티, 매퍼를 전부 mock하고 호출 횟수를 검증했다. 커버리지는 생겼지만 리팩터링하면 테스트가 먼저 무너졌다.
+이 차이가 중요하게 느껴진 이유는
+우린 이제, 구현뿐 아니라 유지보수와 리팩터링에도 AI를 사용하기 때문이다.
+> 구현 방식은 계속 바뀔 수 있지만, 기능이 보장해야 할 동작은 그대로 유지되어야 한다.
 
-## 테스트를 살펴보니 내부 구현까지 가짜였다
+## 동일한 동작을 확인하기 위해 고전파를 선택했다
 
-Spring Boot, MyBatis, MySQL을 사용하는 서버의 테스트를 표본으로 분류했다. 공통 인프라와 별도 목적의 레거시 테스트를 제외해도, 내부 협력 객체를 mock한 테스트가 실제 실행 중심 테스트보다 많았다.
+런던파 테스트가 항상 잘못된 것은 아니다. 객체 사이의 상호작용을 설계하는 데 도움이 될 수 있다. 문제는 에이전트가 이 방식을 거의 모든 내부 객체에 적용한다는 점이다.
 
-반복되는 패턴은 세 가지였다.
-
-### 내부 유틸리티를 정적 mock으로 감쌌다
+에이전트가 작성한 주문 상태 조회 테스트는 다음과 같은 형태였다.
 
 ```java
-try (MockedStatic<CryptoUtils> crypto = mockStatic(CryptoUtils.class)) {
-    crypto.when(() -> CryptoUtils.decrypt(anyString()))
-        .thenReturn("plain-text");
+@Test
+void returns_order_status() {
+    given(orderMapper.findById(1L))
+        .willReturn(new OrderRow(1L, "READY"));
+
+    String status = orderService.getStatus(1L);
+
+    assertThat(status).isEqualTo("READY");
+    verify(orderMapper).findById(1L);
 }
 ```
 
-암복호화 유틸은 같은 프로세스 안에서 빠르게 실행할 수 있다. 이를 mock하면 실제 인코딩이나 키 처리 오류는 테스트 범위 밖으로 밀려난다.
+이 테스트는 mock에 입력한 `"READY"`가 그대로 반환되는지, 서비스가 `findById`를 호출하는지 확인한다.
 
-### 객체 매핑 자체를 mock했다
+서비스를 리팩터링해 `findById` 대신 `findStatusById`를 호출하면 결과가 같아도 `verify`에서 실패한다.
+> 이 기능에서 유지해야 할 것은 특정 메서드를 호출하는 과정이 아니라, 저장된 주문 상태를 올바르게 조회하는 동작이다.
 
-```java
-doReturn(mappedResponses)
-    .when(mapper)
-    .map(any(), any(Type.class));
-```
+반면 고전파 테스트는 내부 함수가 어떻게 호출되는지보다 외부에서 관찰되는 동작을 확인한다. AI가 구현을 정리하거나 다른 방식으로 다시 작성해도 반환값과 저장 상태가 유지되면 테스트는 통과한다.
 
-필드 매핑이 중요한 동작인데 결과를 미리 만들어 돌려주면, 매핑 실수는 영원히 발견되지 않는다.
+다만 고전파를 선택했다고 모든 대상을 실제로 사용할 필요는 없다. 어떤 대상을 테스트 범위에 포함하고 어디서 mock을 사용할지는 따로 정해야 했다.
 
-### private 메서드를 직접 호출했다
+## DB까지 테스트 범위에 포함했다
 
-```java
-ReflectionTestUtils.invokeMethod(service, "canProcess", userId, targetId);
-```
+DB를 사용하는 서버에서는 쿼리와 결과 매핑, 트랜잭션도 기능 동작의 일부다. 그래서 서버 로직과 DB를 나누지 않고 하나의 검증 대상으로 보았다. 특히 MyBatis처럼 SQL을 직접 작성하는 환경에서는 쿼리와 결과 매핑 오류까지 테스트에서 잡아야 했다.
 
-public 동작의 결과가 아니라 내부 메서드 시그니처를 검증한다. 구현을 정리하는 순간 비즈니스 동작은 그대로인데 테스트가 깨진다.
+주문 상태 조회 예시의 `orderMapper`는 MyBatis가 생성한 매퍼가 아니라 Mockito[^mockito] mock이다. `findById`를 호출하면 SQL을 실행하는 대신 `given`에서 지정한 `OrderRow`를 반환한다. 따라서 SQL과 MyBatis의 결과 매핑은 실행되지 않으며, 조회 컬럼이나 결과 매핑을 잘못 작성해도 이 테스트로는 오류를 발견할 수 없다.
 
-## 고전파와 런던파의 차이를 mock 개수로만 보면 안 된다
+SQL과 결과 매핑이 테스트에서 빠지지 않도록 테스트 방식을 다음과 같이 나눴다.
 
-```text
-런던파에 가까운 테스트
-테스트 → mock(DAO) → mock(유틸) → mock(매퍼) → 결과
-
-고전파에 가까운 테스트
-테스트 → 실제 서비스 → 실제 매퍼·DAO → 실제 테스트 DB → 결과
-         외부 API 경계만 대역
-```
-
-고전파가 모든 테스트를 API E2E로 만들라는 뜻은 아니다. 순수 계산은 Spring 없이 단위 테스트할 수 있고, DB와 매퍼를 포함해야 의미가 있는 동작은 통합 테스트로 실행하면 된다. **빠르고 통제할 수 있는 내부 코드는 이유 없이 가짜로 바꾸지 않는다.**
-
-| 실제로 실행 | 대역을 고려 |
+| 검증할 영역 | 테스트 방식 |
 |---|---|
-| 순수 도메인 객체 | 외부 결제 API |
-| 내부 서비스와 유틸 | 푸시·메일 서비스 |
-| MyBatis 매퍼 | 객체 스토리지 |
-| Testcontainers의 DB | 통제할 수 없는 외부 시스템 |
+| 서비스 로직 | 실제 코드 실행 |
+| SQL과 데이터베이스 동작 | 실제 MySQL 사용 |
+| 외부 연동 API | mock 사용 |
 
-판단할 때는 이렇게 물었다.
+`ai-testing-rules`의 mock 규칙은 DB와 ORM을 mock 대상으로 분류한다. 동시에 통합 테스트에서는 실제 DB를 사용하고, 위험도가 높은 영역부터 Testcontainers 같은 환경을 도입하도록 안내한다.
 
-> 이 대역을 제거하면 테스트가 느려지거나 비결정적으로 변하는가?
+## MySQL을 실행하기 위해 Testcontainers를 선택했다
 
-그렇지 않다면 실제 구현을 쓰는 쪽부터 검토했다.
+MySQL까지 테스트 범위에 포함하려면 테스트를 실행할 때 동일한 데이터베이스 환경을 준비할 수 있어야 한다. 사용하는 DB가 MySQL이어서 Testcontainers로 테스트용 MySQL 환경을 구성했다.
 
-## Testcontainers는 가짜 DB가 아니다
-
-"운영 DB가 아니니 Testcontainers도 mock 아닌가"라는 의문이 들었다. 둘은 역할이 다르다.
+매퍼의 반환값을 미리 만들지 않고, 테스트 데이터베이스에 데이터를 넣은 뒤 실제 서비스 로직을 그대로 실행한다.
 
 ```java
-// mock: SQL은 실행되지 않는다.
-given(orderMapper.findById(anyLong())).willReturn(fakeOrder);
+@Test
+void returns_order_status_saved_in_database() {
+    jdbcTemplate.update(
+        "INSERT INTO orders(id, status) VALUES (?, ?)",
+        1L,
+        "READY"
+    );
 
-// Testcontainers: 실제 DB 엔진에서 SQL이 실행된다.
-jdbcTemplate.update("INSERT INTO orders(id, status) VALUES (?, ?)", 1L, "READY");
-orderMapper.findById(1L);
+    String status = orderService.getStatus(1L);
+
+    assertThat(status).isEqualTo("READY");
+}
 ```
 
-컨테이너의 MySQL은 운영 데이터베이스는 아니지만 진짜 SQL, 인덱스, 트랜잭션, 컬럼 매핑을 실행한다. 매퍼 XML의 문법 오류와 스키마 불일치를 잡을 수 있다는 점에서 행동을 미리 정해 둔 mock과 다르다.
+## 실제 DB로 검증할 케이스를 추렸다
 
-## 현실에 가까워지면 테스트는 더 자주 깨질 수 있다
+Testcontainers를 사용하면서 실제 DB에서 SQL과 결과 매핑까지 검증할 수 있었다. 하지만 실제 DB를 포함한 테스트에도 분명한 단점이 있었다.
+실제 DB 테스트가 늘어나자 실행 시간이 길어지고, 테스트 데이터를 준비하는 부담도 커졌다. 또한 모든 케이스를 이 방식으로 작성하면 CI가 끝날 때까지 기다리는 시간이 길어지고 배포/개발 속도에도 영향을 줄 것이 분명했다.
 
-통합 테스트는 순수 단위 테스트보다 느리다. 컨테이너를 JVM당 한 번 재사용해도 첫 기동 비용은 남는다. 스키마가 바뀌면 테스트도 깨진다.
+그래서 테스트의 목표에 따라 검증 범위를 나누기로 했다.
 
-처음에는 이를 단점으로만 봤다. 생각을 바꾼 지점은 "깨져야 할 때 깨지는가"였다. 데이터베이스 스키마가 바뀌었는데 DAO를 mock한 테스트가 계속 통과한다면 빠른 것이 아니라 현실과 끊긴 것이다.
+| 테스트 대상 예시 | 테스트 방식 | 검증 내용 |
+|---|---|---|
+| 입력값 검증, 암호화, 계산 로직 | 단위 테스트 | 각 로직의 결과 |
+| 대표적인 성공·실패 흐름과 반드시 보장해야 할 케이스 | 실제 DB를 포함한 통합 테스트 | SQL, 결과 매핑, 트랜잭션, DB 제약 조건 |
 
-그래서 테스트를 두 층으로 나눴다.
+> **이 경험을 통해 테스트 방식은 하나로 정하기보다, 검증 목표와 비용에 맞춰 취사선택해야 한다는 것을 배웠다.**
 
-| 레벨 | 대상 | Spring Context | 대역 |
-|---|---|---|---|
-| 단위 테스트 | 상태 판정과 계산 같은 순수 로직 | 없음 | 없음 |
-| 통합 테스트 | 서비스 public 동작과 DB 매핑 | 있음 | 외부 I/O만 |
+## AI가 따르는 테스트 기준을 바꿨다
 
-given-when-then 구조는 그대로였다. given에서 mock 반환값을 세팅하는 대신 테스트 DB에 필요한 상태를 넣었다.
+에이전트가 참고하는 테스트 가이드(또는 skills)도 다음과 같이 바꿨다.
 
-```java
-// mock 중심 given
-given(orderMapper.findById(anyLong())).willReturn(order);
+- 먼저 기능에서 보장해야 할 동작을 정한다.
+- 내부 함수의 호출 횟수보다 반환값과 저장 상태를 확인한다.
+- DB 동작을 검증할 필요가 있는 대표 케이스에만 Testcontainers를 사용한다.
+- 별도로 운영되는 외부 연동 API만 mock으로 바꾼다.
 
-// 실제 실행 중심 given
-jdbcTemplate.update(
-    "INSERT INTO orders(id, status) VALUES (?, ?)",
-    1L,
-    "READY"
-);
-```
+AI가 내부 구현을 바꾸더라도 기능은 동일하게 동작해야 한다. 그 동작을 검증하는 테스트는 **AI에게 코드를 맡기기 위한 전제**라고 생각한다.
 
-## 문제는 에이전트가 읽는 가이드에도 있었다
+기능에서 보장해야 할 동작을 구현 과정에서도 강제하기 위해 ATDD와 TDD를 함께 사용했다. 구체적인 방법은 [ATDD로 기능을 명세하고 TDD로 구현을 채우는 방법](/posts/atdd-tdd-test-strategy/)에서 이어서 다룬다.
 
-테스트 결과만 고치면 다음 작업에서 같은 패턴이 반복된다. 에이전트가 읽던 테스트 스킬을 열어보니 DAO를 `@Mock`으로 두고 서비스를 `@InjectMocks`로 만드는 예시와, private 메서드를 리플렉션으로 호출하는 방법이 적혀 있었다.
+[^testing-style]: [Martin Fowler가 구분한 두 테스트 방식](https://martinfowler.com/articles/mocksArentStubs.html#ClassicalAndMockistTesting) 가운데 고전파(classical TDD)는 가능한 한 실제 객체를 함께 사용한다. 런던파(mockist TDD)는 테스트 대상과 협력하는 내부 객체를 mock으로 바꾸고 객체 사이의 호출도 검증한다. 고전파가 모든 테스트를 통합 테스트로 만든다는 뜻은 아니다.
 
-에이전트가 임의로 런던파를 택한 것만은 아니었다. 내가 준 가이드가 그 방향을 강제하고 있었다.
-
-스킬 이름을 특정 테스트 레벨에 묶지 않도록 바꾸고, 공통 원칙과 단위·통합 테스트 가이드를 분리했다.
-
-```text
-test/
-├── SKILL.md
-└── references/
-    ├── integration-test-guide.md
-    └── unit-test-guide.md
-```
-
-첫 줄에는 판단 원칙을 넣었다.
-
-```text
-협력 객체를 습관적으로 가짜로 바꾸지 않는다.
-통제할 수 없는 외부 I/O에만 대역을 둔다.
-```
-
-그리고 반복해서 나온 금지 패턴과 대안을 함께 적었다.
-
-| 피할 패턴 | 먼저 검토할 대안 |
-|---|---|
-| DAO `@Mock` + `@InjectMocks` | Testcontainers 통합 테스트 |
-| 내부 유틸 정적 mock | 실제 유틸 실행 |
-| private 메서드 직접 호출 | public 동작의 결과 검증 |
-| 호출 횟수 `verify` | 반환값과 상태 변화 검증 |
-
-## 다음 요청의 기본값을 바꿨다
-
-기존 테스트에서 mock 경계를 확인하고, 실제로 실행할 내부 코드와 대역으로 둘 외부 경계를 나눴다. 그 기준을 테스트 스킬과 예시에 반영했다.
-
-**리뷰마다 "DAO를 mock하지 마"라고 반복하기보다, 에이전트가 다음 테스트를 만들기 전에 읽는 가이드를 고치는 편이 효과적이었다.**
+[^mockito]: Java 테스트에서 실제 객체 대신 동작을 미리 정한 mock 객체를 만들고, 메서드 호출 여부를 확인할 수 있게 해 주는 라이브러리다.
