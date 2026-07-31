@@ -3,7 +3,7 @@ title: "AI로 개발은 빨라졌는데, 협업은 왜 더 피곤해졌을까"
 slug: "ai-handoff-context"
 description: "AI는 코드를 만드는 일뿐 아니라 작업을 이해하고 검토하는 과정도 빠르게 했다. 그럼에도 한 티켓에서 사람이 읽고 판단해야 할 비용은 왜 커졌는지 돌아본다."
 kind: "diary"
-category: "work-retrospective"
+category: "retrospective"
 publishedAt: "2026-07-08"
 draft: false
 deprecated: false

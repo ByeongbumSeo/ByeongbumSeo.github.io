@@ -99,9 +99,9 @@ export const TAXONOMY = {
         description: "문제를 발견하고 원인을 추적해 해결한 과정을 기록합니다."
       },
       {
-        slug: "work-retrospective",
-        label: "업무 회고",
-        description: "일하면서 겪은 사건, 결정과 배운 점을 돌아봅니다."
+        slug: "retrospective",
+        label: "회고",
+        description: "일하며 겪은 일과 그때 세운 기준을 돌아봅니다."
       },
       {
         slug: "daily",

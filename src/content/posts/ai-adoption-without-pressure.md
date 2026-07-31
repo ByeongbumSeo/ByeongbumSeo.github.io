@@ -3,7 +3,7 @@ title: "AI 도입은 강요가 아니라 배려에서 시작한다"
 slug: "ai-adoption-without-pressure"
 description: "제안하는 쪽은 상대의 속도를 존중해야 하고, 받아들이는 쪽은 불편을 이유로 미루지 않아야 한다."
 kind: "diary"
-category: "work-retrospective"
+category: "retrospective"
 publishedAt: "2026-07-31"
 draft: false
 deprecated: false

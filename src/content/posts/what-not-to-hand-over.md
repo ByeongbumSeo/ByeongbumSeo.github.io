@@ -3,7 +3,7 @@ title: "핸드오프에서 넘길 것과 넘기지 않을 것"
 slug: "what-not-to-hand-over"
 description: "필요한 정보만 전달하고, 상대의 판단은 대신하지 않는다."
 kind: "diary"
-category: "work-retrospective"
+category: "retrospective"
 publishedAt: "2026-07-09"
 draft: false
 deprecated: false
