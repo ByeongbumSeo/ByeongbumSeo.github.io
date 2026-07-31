@@ -604,6 +604,14 @@ pre code {
   color: var(--muted);
 }
 
+.post-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.post-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
 .post-content table {
   display: block;
   overflow-x: auto;
