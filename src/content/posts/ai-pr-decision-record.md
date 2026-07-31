@@ -1,10 +1,11 @@
 ---
-title: "AI 개발이 빨라진 뒤, PR은 의사결정 문서가 됐다"
+title: "카카오페이 느린 PR 고민기: PR 본문은 의사결정 문서가 됐다"
 slug: "ai-pr-decision-record"
 description: "작업 문서의 결정과 검증 결과를 PR·릴리즈 노트·위키까지 이어 쓰면서, 사람이 직접 확인해야 할 판단을 돌아봤다."
 kind: "diary"
 category: "article-notes"
 publishedAt: "2026-07-23"
+updatedAt: "2026-07-31"
 draft: false
 deprecated: false
 outdated: false
@@ -15,7 +16,7 @@ references:
     url: "https://tech.kakaopay.com/post/kakaopayins-slow-pr-fast-dev/"
 ---
 
-카카오페이 기술 블로그의 「PR을 더 느리게 만들기 위한 고민」을 읽었다. 글에서 오래 머문 부분은 PR을 빨리 통과시키는 방법이 아니라, 어떤 변경에서 의도적으로 멈춰야 하는지를 정하는 대목이었다.
+카카오페이 기술 블로그의 [「PR을 더 느리게 만들기 위한 고민」](https://tech.kakaopay.com/post/kakaopayins-slow-pr-fast-dev/)을 읽었다. 글에서 오래 머문 부분은 PR을 빨리 통과시키는 방법이 아니라, 어떤 변경에서 의도적으로 멈춰야 하는지를 정하는 대목이었다.
 
 글은 AI로 코드가 빨리 만들어진 뒤 병목이 코드를 작성하는 곳에서 이해하고 판단하는 곳으로 옮겨갔다고 설명한다. 그래서 리뷰를 무조건 빨리 끝내기보다, 사람이 판단해야 하는 변경과 자동 검증으로 빠르게 확인할 수 있는 변경을 나누고 고민할 시간을 PR 이전으로 옮긴다.
 
